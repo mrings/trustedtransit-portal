@@ -27,14 +27,25 @@ export const api = {
     return res.json();
   },
 
-  createResident: async (data) => {
-    const res = await fetch(`${API_BASE_URL}/residents`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    return res.json();
-  },
+createResident: async (data) => {
+  const res = await fetch(`${API_BASE_URL}/residents`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`API error: ${res.status} - ${errorText}`);
+  }
+  
+  try {
+    return await res.json();
+  } catch (e) {
+    // If response isn't JSON, return success anyway
+    return { success: true };
+  }
+},
 
   // Rides
   getRides: async (facilityId) => {
@@ -42,14 +53,24 @@ export const api = {
     return res.json();
   },
 
-  createRide: async (data) => {
-    const res = await fetch(`${API_BASE_URL}/rides`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    return res.json();
-  },
+createRide: async (data) => {
+  const res = await fetch(`${API_BASE_URL}/rides`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`API error: ${res.status} - ${errorText}`);
+  }
+  
+  try {
+    return await res.json();
+  } catch (e) {
+    return { success: true };
+  }
+},
 
   updateRideStatus: async (id, status) => {
     const res = await fetch(`${API_BASE_URL}/rides/${id}`, {

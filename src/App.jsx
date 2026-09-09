@@ -22,15 +22,16 @@ function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [me, setMe] = useState(null);
   const [meError, setMeError] = useState(null);
+  const [facilities, setFacilities] = useState([]);
+  const [linking, setLinking] = useState(false);
+  const [linkChoice, setLinkChoice] = useState("");
 
   // Give the API client a way to fetch the current access token.
   useEffect(() => {
     setTokenProvider(isAuthenticated ? getAccessTokenSilently : null);
   }, [isAuthenticated, getAccessTokenSilently]);
 
-  // Load the signed-in user (which carries their facilityId).
-  useEffect(() => {
-    if (!isAuthenticated) return;
+  const loadMe = () =>
     api
       .getMe()
       .then(setMe)
@@ -38,7 +39,32 @@ function App() {
         console.error("Error loading current user:", err);
         setMeError("Could not load your account from the API.");
       });
+
+  // Load the signed-in user (which carries their facilityId).
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    loadMe();
   }, [isAuthenticated]);
+
+  // Offer a facility to link to when the user isn't matched to one.
+  useEffect(() => {
+    if (me && !me.facilityId) {
+      api.getFacilities().then((f) => setFacilities(Array.isArray(f) ? f : [])).catch(() => {});
+    }
+  }, [me]);
+
+  const handleLink = async () => {
+    if (!linkChoice) return;
+    setLinking(true);
+    try {
+      await api.linkMyFacility(linkChoice);
+      await loadMe();
+    } catch (err) {
+      setMeError(err.message);
+    } finally {
+      setLinking(false);
+    }
+  };
 
   if (isLoading) {
     return <div className="app"><main className="content"><p>Loading…</p></main></div>;
@@ -123,8 +149,28 @@ function App() {
         )}
         {me && !facilityId && (
           <div className="card" style={{ borderLeft: "4px solid #e8a33d" }}>
-            Your account (<strong>{user?.email}</strong>) isn't linked to a facility yet. An
-            administrator needs to set your facility's email domain, or assign you to one.
+            <p>
+              Your account (<strong>{user?.email}</strong>) isn't linked to a facility yet.
+            </p>
+            {facilities.length > 0 ? (
+              <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                <select
+                  value={linkChoice}
+                  onChange={(e) => setLinkChoice(e.target.value)}
+                  style={{ padding: "8px", borderRadius: "6px", border: "1px solid #ddd" }}
+                >
+                  <option value="">Select a facility…</option>
+                  {facilities.map((f) => (
+                    <option key={f.id} value={f.id}>{f.name}</option>
+                  ))}
+                </select>
+                <button className="button" onClick={handleLink} disabled={!linkChoice || linking}>
+                  {linking ? "Linking…" : "Link my account"}
+                </button>
+              </div>
+            ) : (
+              <p>No facilities exist yet — an administrator needs to create one.</p>
+            )}
           </div>
         )}
 

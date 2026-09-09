@@ -53,6 +53,15 @@ export const api = {
     return res.json();
   },
 
+  linkMyFacility: async (facilityId) => {
+    const res = await fetch(`${API_BASE_URL}/users/me/facility`, {
+      method: "POST",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ facilityId }),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+
   // Residents
   getResidents: async (facilityId) => {
     const res = await fetch(`${API_BASE_URL}/residents?facilityId=${facilityId}`, {

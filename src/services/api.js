@@ -1,81 +1,106 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL + "/api";
 
+// Auth0's getAccessTokenSilently is a hook value, so a component registers it here
+// (see App.jsx) and every request pulls a fresh token from it.
+let tokenProvider = null;
+export function setTokenProvider(fn) {
+  tokenProvider = fn;
+}
+
+async function authHeaders(extra = {}) {
+  const headers = { ...extra };
+  if (tokenProvider) {
+    try {
+      const token = await tokenProvider();
+      if (token) headers.Authorization = `Bearer ${token}`;
+    } catch {
+      // not logged in / token unavailable — send the request unauthenticated
+    }
+  }
+  return headers;
+}
+
+async function parseError(res) {
+  const text = await res.text();
+  return new Error(`API error: ${res.status} - ${text}`);
+}
+
 export const api = {
   // Facilities
   getFacilities: async () => {
-    const res = await fetch(`${API_BASE_URL}/facilities`);
+    const res = await fetch(`${API_BASE_URL}/facilities`, { headers: await authHeaders() });
     return res.json();
   },
 
   getFacility: async (id) => {
-    const res = await fetch(`${API_BASE_URL}/facilities/${id}`);
+    const res = await fetch(`${API_BASE_URL}/facilities/${id}`, { headers: await authHeaders() });
     return res.json();
   },
 
   createFacility: async (data) => {
     const res = await fetch(`${API_BASE_URL}/facilities`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(data),
     });
     return res.json();
   },
 
-  // Residents
-  getResidents: async (facilityId) => {
-    const res = await fetch(`${API_BASE_URL}/residents?facilityId=${facilityId}`);
+  // Current user
+  getMe: async () => {
+    const res = await fetch(`${API_BASE_URL}/users/me`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
     return res.json();
   },
 
-createResident: async (data) => {
-  const res = await fetch(`${API_BASE_URL}/residents`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`API error: ${res.status} - ${errorText}`);
-  }
-  
-  try {
-    return await res.json();
-  } catch (e) {
-    // If response isn't JSON, return success anyway
-    return { success: true };
-  }
-},
+  // Residents
+  getResidents: async (facilityId) => {
+    const res = await fetch(`${API_BASE_URL}/residents?facilityId=${facilityId}`, {
+      headers: await authHeaders(),
+    });
+    return res.json();
+  },
+
+  createResident: async (data) => {
+    const res = await fetch(`${API_BASE_URL}/residents`, {
+      method: "POST",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw await parseError(res);
+    try {
+      return await res.json();
+    } catch {
+      return { success: true };
+    }
+  },
 
   // Rides
   getRides: async (facilityId) => {
-    const res = await fetch(`${API_BASE_URL}/rides?facilityId=${facilityId}`);
+    const res = await fetch(`${API_BASE_URL}/rides?facilityId=${facilityId}`, {
+      headers: await authHeaders(),
+    });
     return res.json();
   },
 
-createRide: async (data) => {
-  const res = await fetch(`${API_BASE_URL}/rides`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`API error: ${res.status} - ${errorText}`);
-  }
-  
-  try {
-    return await res.json();
-  } catch (e) {
-    return { success: true };
-  }
-},
+  createRide: async (data) => {
+    const res = await fetch(`${API_BASE_URL}/rides`, {
+      method: "POST",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw await parseError(res);
+    try {
+      return await res.json();
+    } catch {
+      return { success: true };
+    }
+  },
 
   updateRideStatus: async (id, status) => {
     const res = await fetch(`${API_BASE_URL}/rides/${id}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: await authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ status }),
     });
     return res.json();
@@ -83,14 +108,14 @@ createRide: async (data) => {
 
   // Drivers
   getDrivers: async () => {
-    const res = await fetch(`${API_BASE_URL}/drivers`);
+    const res = await fetch(`${API_BASE_URL}/drivers`, { headers: await authHeaders() });
     return res.json();
   },
 
   createDriver: async (data) => {
     const res = await fetch(`${API_BASE_URL}/drivers`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(data),
     });
     return res.json();

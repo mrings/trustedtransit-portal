@@ -113,7 +113,12 @@ function App() {
             <p>Transportation Management System</p>
           </div>
           <div style={{ textAlign: "right", fontSize: "14px" }}>
-            <div>{user?.email}</div>
+            <div>
+              {user?.email}
+              {me?.role && (
+                <span style={{ opacity: 0.75 }}> · {me.role}</span>
+              )}
+            </div>
             <button
               className="button"
               style={{ marginTop: "6px" }}

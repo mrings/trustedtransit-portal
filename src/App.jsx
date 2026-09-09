@@ -4,16 +4,32 @@ import RideScheduler from "./components/RideScheduler";
 import ResidentList from "./components/ResidentList";
 import DriverTracking from "./components/DriverTracking";
 import Billing from "./components/Billing";
+import { api } from "./services/api";
 import "./App.css";
 
 function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [facility, setFacility] = useState(null);
+  const [facilityError, setFacilityError] = useState(null);
 
   useEffect(() => {
-    // For now, use a hardcoded facility ID
-    // Later, you'll get this from Auth0 or URL params
-    setFacility({ id: "123e4567-e89b-12d3-a456-426614174000" });
+    // No auth yet: load the facility from the API (prefer the default one).
+    // Later, this will come from the logged-in user's token.
+    api
+      .getFacilities()
+      .then((facilities) => {
+        if (!Array.isArray(facilities) || facilities.length === 0) {
+          setFacilityError("No facilities exist yet. Create one first.");
+          return;
+        }
+        const preferred =
+          facilities.find((f) => f.name?.includes("Default")) ?? facilities[0];
+        setFacility(preferred);
+      })
+      .catch((err) => {
+        console.error("Error loading facility:", err);
+        setFacilityError("Could not load facility from the API.");
+      });
   }, []);
 
   return (
@@ -57,6 +73,11 @@ function App() {
       </nav>
 
       <main className="content">
+        {facilityError && (
+          <div className="card" style={{ borderLeft: "4px solid #d33", color: "#d33" }}>
+            {facilityError}
+          </div>
+        )}
         {activeTab === "dashboard" && <Dashboard />}
         {activeTab === "rides" && facility && <RideScheduler facilityId={facility.id} />}
         {activeTab === "residents" && facility && <ResidentList facilityId={facility.id} />}

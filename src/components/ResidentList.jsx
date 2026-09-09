@@ -31,10 +31,7 @@ export default function ResidentList({ facilityId }) {
   const handleAddResident = async (e) => {
     e.preventDefault();
     try {
-      await api.createResident({
-        facilityId: facilityId,
-        ...formData,
-      });
+      await api.createResident({ ...formData });
       setFormData({
         firstName: "",
         lastName: "",

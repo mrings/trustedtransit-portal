@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { api } from "../services/api";
 
-export default function RideScheduler({ facilityId }) {
+export default function RideScheduler() {
   const [formData, setFormData] = useState({
     residentId: "",
     pickupAddress: "",
@@ -19,7 +19,6 @@ export default function RideScheduler({ facilityId }) {
 
     try {
       const rideData = {
-        facilityId: facilityId,
         residentId: formData.residentId,
         pickupAddress: formData.pickupAddress,
         destinationAddress: formData.destinationAddress,

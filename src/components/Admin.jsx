@@ -20,7 +20,6 @@ const inputStyle = {
 };
 
 export default function Admin({ me, onChange }) {
-  const [facility, setFacility] = useState(null);
   const [form, setForm] = useState(null);
   const [savingFacility, setSavingFacility] = useState(false);
   const [facilityMsg, setFacilityMsg] = useState("");
@@ -33,7 +32,6 @@ export default function Admin({ me, onChange }) {
     api
       .getFacility(me.facilityId)
       .then((f) => {
-        setFacility(f);
         setForm({
           name: f.name || "",
           address: f.address || "",

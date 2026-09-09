@@ -34,6 +34,7 @@ export const api = {
 
   getFacility: async (id) => {
     const res = await fetch(`${API_BASE_URL}/facilities/${id}`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
     return res.json();
   },
 
@@ -44,6 +45,15 @@ export const api = {
       body: JSON.stringify(data),
     });
     return res.json();
+  },
+
+  updateFacility: async (id, data) => {
+    const res = await fetch(`${API_BASE_URL}/facilities/${id}`, {
+      method: "PATCH",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw await parseError(res);
   },
 
   // Current user
@@ -58,6 +68,30 @@ export const api = {
       method: "POST",
       headers: await authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ facilityId }),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+
+  // Staff (admin)
+  getUsers: async () => {
+    const res = await fetch(`${API_BASE_URL}/users`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+
+  updateUser: async (id, data) => {
+    const res = await fetch(`${API_BASE_URL}/users/${id}`, {
+      method: "PATCH",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+
+  removeUser: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/users/${id}`, {
+      method: "DELETE",
+      headers: await authHeaders(),
     });
     if (!res.ok) throw await parseError(res);
   },

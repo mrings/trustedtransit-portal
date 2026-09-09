@@ -5,6 +5,7 @@ import RideScheduler from "./components/RideScheduler";
 import ResidentList from "./components/ResidentList";
 import DriverTracking from "./components/DriverTracking";
 import Billing from "./components/Billing";
+import Admin from "./components/Admin";
 import { api, setTokenProvider } from "./services/api";
 import "./App.css";
 
@@ -103,6 +104,10 @@ function App() {
   }
 
   const facilityId = me?.facilityId ?? null;
+  const isAdmin = me?.role === "admin";
+  const tabs = ["dashboard", "rides", "residents", "drivers", "billing", ...(isAdmin ? ["admin"] : [])];
+  const tabLabel = (t) =>
+    t === "rides" ? "Schedule Rides" : t === "drivers" ? "Driver Tracking" : t.charAt(0).toUpperCase() + t.slice(1);
 
   return (
     <div className="app">
@@ -131,17 +136,13 @@ function App() {
       </header>
 
       <nav className="tabs">
-        {["dashboard", "rides", "residents", "drivers", "billing"].map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab}
             className={activeTab === tab ? "active" : ""}
             onClick={() => setActiveTab(tab)}
           >
-            {tab === "rides"
-              ? "Schedule Rides"
-              : tab === "drivers"
-              ? "Driver Tracking"
-              : tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tabLabel(tab)}
           </button>
         ))}
       </nav>
@@ -184,6 +185,7 @@ function App() {
         {activeTab === "residents" && facilityId && <ResidentList facilityId={facilityId} />}
         {activeTab === "drivers" && <DriverTracking />}
         {activeTab === "billing" && <Billing />}
+        {activeTab === "admin" && isAdmin && <Admin me={me} onChange={loadMe} />}
       </main>
     </div>
   );

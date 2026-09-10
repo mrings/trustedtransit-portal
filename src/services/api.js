@@ -165,6 +165,19 @@ export const api = {
     if (!res.ok) throw await parseError(res);
   },
 
+  getUnlinkedUsers: async () => {
+    const res = await fetch(`${API_BASE_URL}/users/unlinked`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  addUserToFacility: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/users/${id}/facility`, {
+      method: "POST",
+      headers: await authHeaders(),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+
   removeUser: async (id) => {
     const res = await fetch(`${API_BASE_URL}/users/${id}`, {
       method: "DELETE",

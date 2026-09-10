@@ -25,6 +25,7 @@ export default function Admin({ me, onChange }) {
   const [facilityMsg, setFacilityMsg] = useState("");
 
   const [staff, setStaff] = useState([]);
+  const [unlinked, setUnlinked] = useState([]);
   const [staffMsg, setStaffMsg] = useState("");
   const [busyUser, setBusyUser] = useState(null);
 
@@ -57,11 +58,22 @@ export default function Admin({ me, onChange }) {
       })
       .catch(() => setFacilityMsg("Could not load facility."));
 
-  const loadStaff = () =>
-    api
-      .getUsers()
-      .then(setStaff)
-      .catch((err) => setStaffMsg(err.message));
+  const loadStaff = () => {
+    api.getUsers().then(setStaff).catch((err) => setStaffMsg(err.message));
+    api.getUnlinkedUsers().then(setUnlinked).catch(() => {});
+  };
+
+  const addMember = async (userId) => {
+    setBusyUser(userId);
+    try {
+      await api.addUserToFacility(userId);
+      loadStaff();
+    } catch (err) {
+      setStaffMsg(err.message);
+    } finally {
+      setBusyUser(null);
+    }
+  };
 
   useEffect(() => {
     if (me?.facilityId) {
@@ -195,11 +207,34 @@ export default function Admin({ me, onChange }) {
         </div>
       )}
 
+      {unlinked.length > 0 && (
+        <div className="card" style={{ borderLeft: "4px solid #e8a33d" }}>
+          <h2>People waiting to join</h2>
+          <p className="muted" style={{ fontSize: "13px" }}>
+            These accounts have signed in but aren't in any facility. Add the ones who belong to yours.
+          </p>
+          <table className="data-table">
+            <tbody>
+              {unlinked.map((u) => (
+                <tr key={u.id}>
+                  <td>{u.email || <em className="muted">(no email on file)</em>}</td>
+                  <td>
+                    <button className="button sm" disabled={busyUser === u.id} onClick={() => addMember(u.id)}>
+                      Add to facility
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       <div className="card">
         <h2>Staff</h2>
         {staffMsg && <p style={{ color: "#d33" }}>{staffMsg}</p>}
         {staff.length === 0 ? (
-          <p>No staff yet. Set the email domain above so colleagues auto-join when they sign in.</p>
+          <p>No staff yet. Set the email domain above so colleagues auto-join when they sign in, or add them from "People waiting to join".</p>
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table className="data-table">

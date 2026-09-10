@@ -56,6 +56,12 @@ export const api = {
     if (!res.ok) throw await parseError(res);
   },
 
+  getDashboard: async () => {
+    const res = await fetch(`${API_BASE_URL}/dashboard`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+
   // Current user
   getMe: async () => {
     const res = await fetch(`${API_BASE_URL}/users/me`, { headers: await authHeaders() });

@@ -89,6 +89,20 @@ export default function Admin({ me, onChange }) {
     }
   };
 
+  const changeStatus = async (userId, status) => {
+    setBusyUser(userId);
+    setStaffMsg("");
+    try {
+      await api.updateUser(userId, { status });
+      await loadStaff();
+    } catch (err) {
+      setStaffMsg(err.message);
+      await loadStaff();
+    } finally {
+      setBusyUser(null);
+    }
+  };
+
   const remove = async (userId) => {
     if (!window.confirm("Remove this person from the facility?")) return;
     setBusyUser(userId);
@@ -154,48 +168,62 @@ export default function Admin({ me, onChange }) {
         {staff.length === 0 ? (
           <p>No staff yet. Set the email domain above so colleagues auto-join when they sign in.</p>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
-                <th style={{ textAlign: "left", padding: "12px" }}>Email</th>
-                <th style={{ textAlign: "left", padding: "12px" }}>Role</th>
-                <th style={{ textAlign: "left", padding: "12px" }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {staff.map((u) => (
-                <tr key={u.id} style={{ borderBottom: "1px solid #eee" }}>
-                  <td style={{ padding: "12px" }}>
-                    {u.email || <em style={{ color: "#999" }}>(no email on file)</em>}
-                    {u.id === me.id && <span style={{ color: "#999" }}> — you</span>}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    <select
-                      value={u.role}
-                      disabled={busyUser === u.id}
-                      onChange={(e) => changeRole(u.id, e.target.value)}
-                      style={{ padding: "6px", borderRadius: "6px", border: "1px solid #ddd" }}
-                    >
-                      {ROLES.map((r) => (
-                        <option key={r} value={r}>{r}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    {u.id !== me.id && (
-                      <button
-                        className="button secondary"
-                        disabled={busyUser === u.id}
-                        onClick={() => remove(u.id)}
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </td>
+          <div style={{ overflowX: "auto" }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {staff.map((u) => (
+                  <tr key={u.id}>
+                    <td>
+                      {u.email || <em className="muted">(no email on file)</em>}
+                      {u.id === me.id && <span className="muted"> — you</span>}
+                    </td>
+                    <td>
+                      <select
+                        value={u.role}
+                        disabled={busyUser === u.id}
+                        onChange={(e) => changeRole(u.id, e.target.value)}
+                        style={{ padding: "6px", borderRadius: "6px", border: "1px solid #ddd" }}
+                      >
+                        {ROLES.map((r) => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <select
+                        value={u.status}
+                        disabled={busyUser === u.id}
+                        onChange={(e) => changeStatus(u.id, e.target.value)}
+                        style={{ padding: "6px", borderRadius: "6px", border: "1px solid #ddd" }}
+                      >
+                        <option value="active">active</option>
+                        <option value="inactive">inactive</option>
+                      </select>
+                    </td>
+                    <td>
+                      {u.id !== me.id && (
+                        <button
+                          className="button danger sm"
+                          disabled={busyUser === u.id}
+                          onClick={() => remove(u.id)}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </>

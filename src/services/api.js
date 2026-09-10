@@ -97,10 +97,15 @@ export const api = {
   },
 
   // Residents
-  getResidents: async (facilityId) => {
-    const res = await fetch(`${API_BASE_URL}/residents?facilityId=${facilityId}`, {
-      headers: await authHeaders(),
-    });
+  getResidents: async () => {
+    const res = await fetch(`${API_BASE_URL}/residents`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+
+  getResident: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/residents/${id}`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
     return res.json();
   },
 
@@ -118,11 +123,27 @@ export const api = {
     }
   },
 
-  // Rides
-  getRides: async (facilityId) => {
-    const res = await fetch(`${API_BASE_URL}/rides?facilityId=${facilityId}`, {
+  updateResident: async (id, data) => {
+    const res = await fetch(`${API_BASE_URL}/residents/${id}`, {
+      method: "PATCH",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+
+  deleteResident: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/residents/${id}`, {
+      method: "DELETE",
       headers: await authHeaders(),
     });
+    if (!res.ok) throw await parseError(res);
+  },
+
+  // Rides
+  getRides: async () => {
+    const res = await fetch(`${API_BASE_URL}/rides`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
     return res.json();
   },
 
@@ -161,6 +182,24 @@ export const api = {
       headers: await authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(data),
     });
+    if (!res.ok) throw await parseError(res);
     return res.json();
+  },
+
+  updateDriver: async (id, data) => {
+    const res = await fetch(`${API_BASE_URL}/drivers/${id}`, {
+      method: "PATCH",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+
+  deleteDriver: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/drivers/${id}`, {
+      method: "DELETE",
+      headers: await authHeaders(),
+    });
+    if (!res.ok) throw await parseError(res);
   },
 };

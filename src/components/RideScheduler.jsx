@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "../services/api";
 
 export default function RideScheduler() {
@@ -9,8 +9,13 @@ export default function RideScheduler() {
     scheduledTime: "",
     appointmentType: "",
   });
+  const [residents, setResidents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    api.getResidents().then(setResidents).catch(() => {});
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,15 +54,20 @@ export default function RideScheduler() {
       {message && <p style={{ marginBottom: "16px", fontWeight: "bold" }}>{message}</p>}
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: "16px" }}>
-          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>Resident ID</label>
-          <input
-            type="text"
-            placeholder="Enter resident ID"
+          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>Resident</label>
+          <select
             value={formData.residentId}
             onChange={(e) => setFormData({ ...formData, residentId: e.target.value })}
             required
             style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd" }}
-          />
+          >
+            <option value="">Select a resident…</option>
+            {residents.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.firstName} {r.lastName}
+              </option>
+            ))}
+          </select>
         </div>
         <div style={{ marginBottom: "16px" }}>
           <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>Pickup Address</label>

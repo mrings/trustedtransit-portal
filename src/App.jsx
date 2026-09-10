@@ -181,9 +181,9 @@ function App() {
         )}
 
         {activeTab === "dashboard" && <Dashboard />}
-        {activeTab === "rides" && facilityId && <RideScheduler facilityId={facilityId} />}
-        {activeTab === "residents" && facilityId && <ResidentList facilityId={facilityId} />}
-        {activeTab === "drivers" && <DriverTracking />}
+        {activeTab === "rides" && facilityId && <RideScheduler />}
+        {activeTab === "residents" && facilityId && <ResidentList />}
+        {activeTab === "drivers" && <DriverTracking isAdmin={isAdmin} />}
         {activeTab === "billing" && <Billing />}
         {activeTab === "admin" && isAdmin && <Admin me={me} onChange={loadMe} />}
       </main>

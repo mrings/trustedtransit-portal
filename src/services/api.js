@@ -161,13 +161,21 @@ export const api = {
     }
   },
 
-  updateRideStatus: async (id, status) => {
+  updateRide: async (id, data) => {
     const res = await fetch(`${API_BASE_URL}/rides/${id}`, {
       method: "PATCH",
       headers: await authHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify({ status }),
+      body: JSON.stringify(data),
     });
-    return res.json();
+    if (!res.ok) throw await parseError(res);
+  },
+
+  deleteRide: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/rides/${id}`, {
+      method: "DELETE",
+      headers: await authHeaders(),
+    });
+    if (!res.ok) throw await parseError(res);
   },
 
   // Drivers

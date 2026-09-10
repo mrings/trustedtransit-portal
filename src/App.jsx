@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import Dashboard from "./components/Dashboard";
-import RideScheduler from "./components/RideScheduler";
+import Rides from "./components/Rides";
 import ResidentList from "./components/ResidentList";
 import DriverTracking from "./components/DriverTracking";
 import Billing from "./components/Billing";
@@ -107,7 +107,7 @@ function App() {
   const isAdmin = me?.role === "admin";
   const tabs = ["dashboard", "rides", "residents", "drivers", "billing", ...(isAdmin ? ["admin"] : [])];
   const tabLabel = (t) =>
-    t === "rides" ? "Schedule Rides" : t === "drivers" ? "Driver Tracking" : t.charAt(0).toUpperCase() + t.slice(1);
+    t === "drivers" ? "Drivers" : t.charAt(0).toUpperCase() + t.slice(1);
 
   return (
     <div className="app">
@@ -181,7 +181,7 @@ function App() {
         )}
 
         {activeTab === "dashboard" && <Dashboard />}
-        {activeTab === "rides" && facilityId && <RideScheduler />}
+        {activeTab === "rides" && facilityId && <Rides />}
         {activeTab === "residents" && facilityId && <ResidentList />}
         {activeTab === "drivers" && <DriverTracking isAdmin={isAdmin} />}
         {activeTab === "billing" && <Billing />}

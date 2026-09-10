@@ -11,9 +11,22 @@ const fmtDate = (iso) => {
 
 const STATUS_COLOR = { trial: "#e8a33d", active: "green", canceled: "#d9453d", past_due: "#d9453d" };
 
+// One-time notice from the Stripe redirect return.
+function returnNotice() {
+  const p = new URLSearchParams(window.location.search).get("sub");
+  if (!p) return null;
+  window.history.replaceState({}, "", window.location.pathname);
+  return {
+    success: "Subscription started — thank you!",
+    cancel: "Checkout canceled.",
+    portal: "Billing settings updated.",
+  }[p];
+}
+
 export default function Subscription() {
   const [sub, setSub] = useState(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState(returnNotice);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -28,6 +41,18 @@ export default function Subscription() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const redirect = async (fn) => {
+    setBusy(true);
+    setError("");
+    try {
+      const { url } = await fn();
+      window.location.assign(url);
+    } catch (e) {
+      setError(e.message);
+      setBusy(false);
+    }
+  };
 
   const run = async (fn, confirmMsg) => {
     if (confirmMsg && !window.confirm(confirmMsg)) return;
@@ -47,24 +72,36 @@ export default function Subscription() {
     return <div className="card"><p>{error || "Loading…"}</p></div>;
   }
 
-  const { status, tier, planName, monthlyPriceCents, trialDaysLeft, trialEndsAt, renewsAt, canManage, plans } = sub;
+  const {
+    status, tier, planName, monthlyPriceCents, trialDaysLeft, trialEndsAt,
+    renewsAt, cancelAtPeriodEnd, hasStripeSubscription, canManage, billingEnabled, plans,
+  } = sub;
+
+  const isPaid = status === "active" || status === "past_due";
 
   return (
     <>
       <div className="card">
         <h2>Subscription</h2>
+        {notice && (
+          <div className="card" style={{ borderLeft: "4px solid #667eea", marginBottom: "12px" }}>
+            {notice} <button className="button secondary sm" onClick={() => setNotice(null)}>Dismiss</button>
+          </div>
+        )}
         {error && <p style={{ color: "#d9453d" }}>{error}</p>}
+        {!billingEnabled && (
+          <p className="muted" style={{ fontSize: "13px" }}>
+            Payments aren't configured on the server yet — plan changes apply locally and nothing is charged.
+          </p>
+        )}
 
         <div style={{ padding: "16px", background: "#f9f9f9", borderRadius: "8px" }}>
           <div style={{ fontSize: "22px", fontWeight: 700 }}>
             {planName}{" "}
-            <span style={{ fontSize: "15px", fontWeight: 400, color: "#666" }}>
-              {money(monthlyPriceCents)}/mo
-            </span>
+            <span style={{ fontSize: "15px", fontWeight: 400, color: "#666" }}>{money(monthlyPriceCents)}/mo</span>
           </div>
           <div style={{ marginTop: "8px" }}>
-            Status:{" "}
-            <span style={{ fontWeight: 700, color: STATUS_COLOR[status] || "#333" }}>{status}</span>
+            Status: <span style={{ fontWeight: 700, color: STATUS_COLOR[status] || "#333" }}>{status}</span>
           </div>
           {status === "trial" && (
             <div style={{ marginTop: "4px", color: trialDaysLeft <= 5 ? "#d9453d" : "#666" }}>
@@ -73,40 +110,44 @@ export default function Subscription() {
                 : `Trial ended ${fmtDate(trialEndsAt)}`}
             </div>
           )}
-          {status === "active" && renewsAt && (
-            <div style={{ marginTop: "4px", color: "#666" }}>Renews {fmtDate(renewsAt)}</div>
-          )}
-          {status === "canceled" && (
+          {isPaid && renewsAt && (
             <div style={{ marginTop: "4px", color: "#666" }}>
-              Canceled{renewsAt ? ` — access through ${fmtDate(renewsAt)}` : ""}
+              {cancelAtPeriodEnd ? `Cancels on ${fmtDate(renewsAt)}` : `Renews ${fmtDate(renewsAt)}`}
             </div>
+          )}
+          {status === "past_due" && (
+            <div style={{ marginTop: "4px", color: "#d9453d" }}>Payment failed — update your card in billing settings.</div>
           )}
         </div>
 
         {canManage && (
           <div className="row-actions" style={{ marginTop: "16px" }}>
-            {status !== "active" && (
-              <button className="button" disabled={busy} onClick={() => run(api.activateSubscription)}>
-                {status === "trial" ? "Start subscription" : "Reactivate"}
+            {!isPaid && billingEnabled && (
+              <button className="button" disabled={busy} onClick={() => redirect(() => api.subscribeCheckout(tier))}>
+                Subscribe to {planName}
               </button>
             )}
-            {status === "active" && (
+            {isPaid && hasStripeSubscription && (
+              <button className="button secondary" disabled={busy} onClick={() => redirect(api.billingPortal)}>
+                Manage billing
+              </button>
+            )}
+            {isPaid && !cancelAtPeriodEnd && (
               <button
                 className="button danger"
                 disabled={busy}
-                onClick={() =>
-                  run(api.cancelSubscription, "Cancel the subscription? Access continues until the renewal date.")
-                }
+                onClick={() => run(api.cancelSubscription, "Cancel the subscription at the end of the current period?")}
               >
-                Cancel subscription
+                Cancel
+              </button>
+            )}
+            {cancelAtPeriodEnd && (
+              <button className="button" disabled={busy} onClick={() => run(api.resumeSubscription)}>
+                Resume subscription
               </button>
             )}
           </div>
         )}
-
-        <p className="muted" style={{ marginTop: "16px", fontSize: "13px" }}>
-          Payments aren't connected yet — plan changes take effect immediately and nothing is charged.
-        </p>
       </div>
 
       <div className="card">
@@ -117,11 +158,7 @@ export default function Subscription() {
             return (
               <div
                 key={p.key}
-                style={{
-                  border: current ? "2px solid #667eea" : "1px solid #ddd",
-                  borderRadius: "8px",
-                  padding: "16px",
-                }}
+                style={{ border: current ? "2px solid #667eea" : "1px solid #ddd", borderRadius: "8px", padding: "16px" }}
               >
                 <div style={{ fontWeight: 700, fontSize: "18px" }}>{p.name}</div>
                 <div style={{ color: "#667eea", fontWeight: 700, margin: "6px 0" }}>
@@ -136,9 +173,19 @@ export default function Subscription() {
                 {current ? (
                   <span style={{ fontWeight: 700, color: "#667eea" }}>Current plan</span>
                 ) : canManage ? (
-                  <button className="button secondary sm" disabled={busy} onClick={() => run(() => api.changePlan(p.key))}>
-                    Switch to {p.name}
-                  </button>
+                  isPaid ? (
+                    <button className="button secondary sm" disabled={busy} onClick={() => run(() => api.changePlan(p.key))}>
+                      Switch to {p.name}
+                    </button>
+                  ) : billingEnabled ? (
+                    <button className="button secondary sm" disabled={busy} onClick={() => redirect(() => api.subscribeCheckout(p.key))}>
+                      Subscribe to {p.name}
+                    </button>
+                  ) : (
+                    <button className="button secondary sm" disabled={busy} onClick={() => run(() => api.changePlan(p.key))}>
+                      Choose {p.name}
+                    </button>
+                  )
                 ) : null}
               </div>
             );

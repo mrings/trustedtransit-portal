@@ -82,15 +82,32 @@ export const api = {
     });
     if (!res.ok) throw await parseError(res);
   },
-  activateSubscription: async () => {
-    const res = await fetch(`${API_BASE_URL}/subscription/activate`, {
+  subscribeCheckout: async (tier) => {
+    const res = await fetch(`${API_BASE_URL}/subscription/checkout`, {
+      method: "POST",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ tier }),
+    });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  billingPortal: async () => {
+    const res = await fetch(`${API_BASE_URL}/subscription/portal`, {
+      method: "POST",
+      headers: await authHeaders(),
+    });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  cancelSubscription: async () => {
+    const res = await fetch(`${API_BASE_URL}/subscription/cancel`, {
       method: "POST",
       headers: await authHeaders(),
     });
     if (!res.ok) throw await parseError(res);
   },
-  cancelSubscription: async () => {
-    const res = await fetch(`${API_BASE_URL}/subscription/cancel`, {
+  resumeSubscription: async () => {
+    const res = await fetch(`${API_BASE_URL}/subscription/resume`, {
       method: "POST",
       headers: await authHeaders(),
     });

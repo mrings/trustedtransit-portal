@@ -69,6 +69,25 @@ export const api = {
     return res.json();
   },
 
+  getNotificationSettings: async () => {
+    const res = await fetch(`${API_BASE_URL}/notifications/settings`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  updateNotificationSettings: async (enabled) => {
+    const res = await fetch(`${API_BASE_URL}/notifications/settings`, {
+      method: "PUT",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ enabled }),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+  getRideNotifications: async (rideId) => {
+    const res = await fetch(`${API_BASE_URL}/notifications/ride/${rideId}`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+
   getSubscription: async () => {
     const res = await fetch(`${API_BASE_URL}/subscription`, { headers: await authHeaders() });
     if (!res.ok) throw await parseError(res);

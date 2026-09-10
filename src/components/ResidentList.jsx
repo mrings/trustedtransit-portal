@@ -9,6 +9,7 @@ const EMPTY = {
   mobilityRequirements: "",
   medicalInfo: "",
   familyEmail: "",
+  familyPhone: "",
   notes: "",
 };
 
@@ -51,6 +52,9 @@ function ResidentForm({ initial, onSubmit, onCancel, submitLabel }) {
         </Field>
         <Field label="Family email">
           <input className="input" type="email" value={data.familyEmail} onChange={set("familyEmail")} />
+        </Field>
+        <Field label="Family phone">
+          <input className="input" type="tel" placeholder="for SMS updates" value={data.familyPhone} onChange={set("familyPhone")} />
         </Field>
       </div>
       <Field label="Medical info">
@@ -112,6 +116,7 @@ export default function ResidentList() {
         mobilityRequirements: r.mobilityRequirements || "",
         medicalInfo: r.medicalInfo || "",
         familyEmail: r.familyEmail || "",
+        familyPhone: r.familyPhone || "",
         notes: r.notes || "",
       });
       setEditingId(id);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Fragment } from "react";
 import { api } from "../services/api";
 import RecurringRides from "./RecurringRides";
 
@@ -154,6 +154,25 @@ export default function Rides() {
     }
   };
 
+  const [expandedId, setExpandedId] = useState(null);
+  const [notifs, setNotifs] = useState({});
+
+  const toggleNotifs = async (rideId) => {
+    if (expandedId === rideId) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(rideId);
+    if (!notifs[rideId]) {
+      try {
+        const list = await api.getRideNotifications(rideId);
+        setNotifs((n) => ({ ...n, [rideId]: list }));
+      } catch {
+        setNotifs((n) => ({ ...n, [rideId]: [] }));
+      }
+    }
+  };
+
   const activeDrivers = drivers.filter((d) => d.status === "active");
 
   return (
@@ -185,12 +204,14 @@ export default function Rides() {
                 <th>Scheduled</th>
                 <th>Driver</th>
                 <th>Status</th>
+                <th>Family</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {rides.map((r) => (
-                <tr key={r.id}>
+                <Fragment key={r.id}>
+                <tr>
                   <td>
                     {r.residentName}
                     {r.recurring && (
@@ -242,11 +263,41 @@ export default function Rides() {
                     </select>
                   </td>
                   <td>
+                    <button
+                      className="button secondary sm"
+                      title="Family notification history"
+                      onClick={() => toggleNotifs(r.id)}
+                    >
+                      ✉ {r.notificationCount || 0}
+                    </button>
+                  </td>
+                  <td>
                     <button className="button danger sm" disabled={busy === r.id} onClick={() => remove(r)}>
                       Delete
                     </button>
                   </td>
                 </tr>
+                {expandedId === r.id && (
+                  <tr>
+                    <td colSpan={7} style={{ background: "#fafafa" }}>
+                      {!notifs[r.id] ? (
+                        <span className="muted">Loading…</span>
+                      ) : notifs[r.id].length === 0 ? (
+                        <span className="muted">No family notifications sent for this ride.</span>
+                      ) : (
+                        <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "13px" }}>
+                          {notifs[r.id].map((n, i) => (
+                            <li key={i} style={{ color: n.success ? "#333" : "#d9453d" }}>
+                              {new Date(n.createdAt).toLocaleString()} · <strong>{n.event}</strong> · {n.channel} → {n.recipient}
+                              {n.success ? " ✓" : ` ✗ ${n.error}`}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               ))}
             </tbody>
           </table>

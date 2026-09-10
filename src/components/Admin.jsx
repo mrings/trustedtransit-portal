@@ -28,6 +28,19 @@ export default function Admin({ me, onChange }) {
   const [staffMsg, setStaffMsg] = useState("");
   const [busyUser, setBusyUser] = useState(null);
 
+  const [notif, setNotif] = useState(null);
+
+  const loadNotif = () => api.getNotificationSettings().then(setNotif).catch(() => {});
+
+  const toggleNotif = async () => {
+    try {
+      await api.updateNotificationSettings(!notif.enabled);
+      loadNotif();
+    } catch (e) {
+      setFacilityMsg(e.message);
+    }
+  };
+
   const loadFacility = () =>
     api
       .getFacility(me.facilityId)
@@ -54,6 +67,7 @@ export default function Admin({ me, onChange }) {
     if (me?.facilityId) {
       loadFacility();
       loadStaff();
+      loadNotif();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me?.facilityId]);
@@ -161,6 +175,25 @@ export default function Admin({ me, onChange }) {
           )}
         </form>
       </div>
+
+      {notif && (
+        <div className="card">
+          <h2>Family notifications</h2>
+          <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <input type="checkbox" checked={notif.enabled} onChange={toggleNotif} />
+            Send ride-status updates to residents' families
+          </label>
+          <p className="muted" style={{ fontSize: "13px", marginTop: "10px" }}>
+            Channels: email {notif.emailChannel ? "✓ active" : "— not configured"} · SMS{" "}
+            {notif.smsChannel ? "✓ active" : "— not configured"}
+            {!notif.emailChannel && !notif.smsChannel && " (no delivery until the server is configured)"}
+          </p>
+          <p className="muted" style={{ fontSize: "13px" }}>
+            Families are notified when a driver is assigned, the resident is picked up, the ride
+            completes, or a ride is cancelled — using the family email/phone on each resident.
+          </p>
+        </div>
+      )}
 
       <div className="card">
         <h2>Staff</h2>

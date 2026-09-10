@@ -154,6 +154,17 @@ function App() {
             {meError}
           </div>
         )}
+        {me && facilityId && me.subscriptionActive === false && (
+          <div className="card" style={{ borderLeft: "4px solid #d9453d", display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+            <span>
+              {me.subscriptionStatus === "trial" ? "Your free trial has ended." : "Your subscription is inactive."}{" "}
+              {isAdmin ? "Subscribe to keep adding residents and rides." : "Ask an administrator to subscribe."}
+            </span>
+            {isAdmin && (
+              <button className="button sm" onClick={() => setActiveTab("subscription")}>View plans</button>
+            )}
+          </div>
+        )}
         {me && !facilityId && (
           <div className="card" style={{ borderLeft: "4px solid #e8a33d" }}>
             <p>

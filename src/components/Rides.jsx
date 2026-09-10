@@ -87,6 +87,7 @@ export default function Rides() {
   const [rides, setRides] = useState([]);
   const [residents, setResidents] = useState([]);
   const [drivers, setDrivers] = useState([]);
+  const [recurringAllowed, setRecurringAllowed] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [scheduling, setScheduling] = useState(false);
@@ -94,10 +95,16 @@ export default function Rides() {
 
   const load = useCallback(async () => {
     try {
-      const [r, res, drv] = await Promise.all([api.getRides(), api.getResidents(), api.getDrivers()]);
+      const [r, res, drv, sub] = await Promise.all([
+        api.getRides(),
+        api.getResidents(),
+        api.getDrivers(),
+        api.getSubscription().catch(() => null),
+      ]);
       setRides(r);
       setResidents(res);
       setDrivers(drv);
+      if (sub) setRecurringAllowed(sub.recurringRidesAllowed);
       setError("");
     } catch (e) {
       setError(e.message);
@@ -246,7 +253,7 @@ export default function Rides() {
         </div>
       )}
     </div>
-    <RecurringRides onChange={load} />
+    <RecurringRides onChange={load} allowed={recurringAllowed} />
     </>
   );
 }

@@ -125,7 +125,7 @@ function SeriesForm({ residents, drivers, initial, onSubmit, onCancel, submitLab
   );
 }
 
-export default function RecurringRides({ onChange }) {
+export default function RecurringRides({ onChange, allowed = true }) {
   const [series, setSeries] = useState([]);
   const [residents, setResidents] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -214,6 +214,24 @@ export default function RecurringRides({ onChange }) {
     startDate: s.startDate,
     endDate: s.endDate || "",
   });
+
+  if (!allowed) {
+    return (
+      <div className="card" style={{ borderLeft: "4px solid #667eea" }}>
+        <h2>Recurring Rides</h2>
+        <p className="muted">
+          Recurring ride schedules (e.g. dialysis every Mon/Wed/Fri) are available on the <strong>Pro</strong> plan.
+          Upgrade from the Subscription tab.
+        </p>
+        {series.length > 0 && (
+          <p className="muted" style={{ fontSize: "13px" }}>
+            You have {series.length} existing recurring schedule{series.length === 1 ? "" : "s"}; they stop generating new
+            rides until you upgrade.
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="card">

@@ -75,6 +75,7 @@ export default function Subscription() {
   const {
     status, tier, planName, monthlyPriceCents, trialDaysLeft, trialEndsAt,
     renewsAt, cancelAtPeriodEnd, hasStripeSubscription, canManage, billingEnabled, plans,
+    residentCount, residentLimit, recurringRidesAllowed,
   } = sub;
 
   const isPaid = status === "active" || status === "past_due";
@@ -118,6 +119,14 @@ export default function Subscription() {
           {status === "past_due" && (
             <div style={{ marginTop: "4px", color: "#d9453d" }}>Payment failed — update your card in billing settings.</div>
           )}
+          <div style={{ marginTop: "10px", fontSize: "13px", color: "#666" }}>
+            Residents: {residentCount}
+            {residentLimit ? ` / ${residentLimit}` : " (unlimited)"}
+            {residentLimit && residentCount >= residentLimit && (
+              <span style={{ color: "#d9453d", fontWeight: 600 }}> — limit reached</span>
+            )}
+            {" · "}Recurring rides: {recurringRidesAllowed ? "included" : "not on this plan"}
+          </div>
         </div>
 
         {canManage && (
@@ -166,7 +175,9 @@ export default function Subscription() {
                 </div>
                 <div className="muted" style={{ fontSize: "13px", marginBottom: "10px" }}>{p.description}</div>
                 <ul style={{ paddingLeft: "18px", fontSize: "13px", margin: "0 0 12px" }}>
-                  {p.features.map((f) => (
+                  <li>{p.residentLimit ? `Up to ${p.residentLimit} residents` : "Unlimited residents"}</li>
+                  <li>{p.recurringRides ? "Recurring rides" : "One-time rides"}</li>
+                  {p.features.filter((f) => !/resident|recurring/i.test(f)).map((f) => (
                     <li key={f}>{f}</li>
                   ))}
                 </ul>

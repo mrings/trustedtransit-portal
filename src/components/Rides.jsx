@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "../services/api";
+import RecurringRides from "./RecurringRides";
 
 const STATUSES = ["scheduled", "assigned", "in_progress", "completed", "cancelled"];
 const STATUS_COLOR = {
@@ -149,6 +150,7 @@ export default function Rides() {
   const activeDrivers = drivers.filter((d) => d.status === "active");
 
   return (
+    <>
     <div className="card">
       <h2>Rides</h2>
       {error && <p style={{ color: "#d9453d", marginBottom: "12px" }}>{error}</p>}
@@ -182,7 +184,12 @@ export default function Rides() {
             <tbody>
               {rides.map((r) => (
                 <tr key={r.id}>
-                  <td>{r.residentName}</td>
+                  <td>
+                    {r.residentName}
+                    {r.recurring && (
+                      <span className="mono" style={{ display: "block", color: "#2f6fed" }}>↻ recurring</span>
+                    )}
+                  </td>
                   <td>
                     <div>{r.pickupAddress || "—"}</div>
                     <div className="muted">→ {r.destinationAddress || "—"}</div>
@@ -239,5 +246,7 @@ export default function Rides() {
         </div>
       )}
     </div>
+    <RecurringRides onChange={load} />
+    </>
   );
 }

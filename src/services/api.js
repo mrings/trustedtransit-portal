@@ -184,6 +184,39 @@ export const api = {
     if (!res.ok) throw await parseError(res);
   },
 
+  // Recurring ride patterns
+  getRideSeries: async () => {
+    const res = await fetch(`${API_BASE_URL}/rideseries`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+
+  createRideSeries: async (data) => {
+    const res = await fetch(`${API_BASE_URL}/rideseries`, {
+      method: "POST",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+
+  updateRideSeries: async (id, data) => {
+    const res = await fetch(`${API_BASE_URL}/rideseries/${id}`, {
+      method: "PATCH",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+
+  deleteRideSeries: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/rideseries/${id}`, {
+      method: "DELETE",
+      headers: await authHeaders(),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+
   // Drivers
   getDrivers: async () => {
     const res = await fetch(`${API_BASE_URL}/drivers`, { headers: await authHeaders() });

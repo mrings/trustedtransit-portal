@@ -69,6 +69,34 @@ export const api = {
     return res.json();
   },
 
+  getSubscription: async () => {
+    const res = await fetch(`${API_BASE_URL}/subscription`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  changePlan: async (tier) => {
+    const res = await fetch(`${API_BASE_URL}/subscription`, {
+      method: "PUT",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ tier }),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+  activateSubscription: async () => {
+    const res = await fetch(`${API_BASE_URL}/subscription/activate`, {
+      method: "POST",
+      headers: await authHeaders(),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+  cancelSubscription: async () => {
+    const res = await fetch(`${API_BASE_URL}/subscription/cancel`, {
+      method: "POST",
+      headers: await authHeaders(),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+
   // Current user
   getMe: async () => {
     const res = await fetch(`${API_BASE_URL}/users/me`, { headers: await authHeaders() });

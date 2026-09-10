@@ -6,6 +6,7 @@ import ResidentList from "./components/ResidentList";
 import DriverTracking from "./components/DriverTracking";
 import Billing from "./components/Billing";
 import Admin from "./components/Admin";
+import Subscription from "./components/Subscription";
 import { api, setTokenProvider } from "./services/api";
 import "./App.css";
 
@@ -105,7 +106,7 @@ function App() {
 
   const facilityId = me?.facilityId ?? null;
   const isAdmin = me?.role === "admin";
-  const tabs = ["dashboard", "rides", "residents", "drivers", "billing", ...(isAdmin ? ["admin"] : [])];
+  const tabs = ["dashboard", "rides", "residents", "drivers", "billing", ...(isAdmin ? ["admin", "subscription"] : [])];
   const tabLabel = (t) =>
     t === "drivers" ? "Drivers" : t.charAt(0).toUpperCase() + t.slice(1);
 
@@ -186,6 +187,7 @@ function App() {
         {activeTab === "drivers" && <DriverTracking isAdmin={isAdmin} />}
         {activeTab === "billing" && <Billing />}
         {activeTab === "admin" && isAdmin && <Admin me={me} onChange={loadMe} />}
+        {activeTab === "subscription" && isAdmin && <Subscription />}
       </main>
     </div>
   );

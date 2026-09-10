@@ -7,6 +7,7 @@ import DriverTracking from "./components/DriverTracking";
 import Billing from "./components/Billing";
 import Admin from "./components/Admin";
 import Subscription from "./components/Subscription";
+import DriverView from "./components/DriverView";
 import { api, setTokenProvider } from "./services/api";
 import "./App.css";
 
@@ -106,9 +107,34 @@ function App() {
 
   const facilityId = me?.facilityId ?? null;
   const isAdmin = me?.role === "admin";
+  const isDriver = me?.role === "driver";
   const tabs = ["dashboard", "rides", "residents", "drivers", "billing", ...(isAdmin ? ["admin", "subscription"] : [])];
   const tabLabel = (t) =>
     t === "drivers" ? "Drivers" : t.charAt(0).toUpperCase() + t.slice(1);
+
+  if (isDriver) {
+    return (
+      <div className="app">
+        <header className="header">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <h1>Trusted Transit — Driver</h1>
+              <p>{user?.email}</p>
+            </div>
+            <button
+              className="button"
+              onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+            >
+              Log Out
+            </button>
+          </div>
+        </header>
+        <main className="content">
+          <DriverView />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="app">

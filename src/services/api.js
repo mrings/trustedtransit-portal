@@ -320,4 +320,27 @@ export const api = {
     });
     if (!res.ok) throw await parseError(res);
   },
+
+  // Driver self-service
+  getMyDriver: async () => {
+    const res = await fetch(`${API_BASE_URL}/drivers/me`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  updateMyDriver: async (data) => {
+    const res = await fetch(`${API_BASE_URL}/drivers/me`, {
+      method: "PATCH",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+  postMyLocation: async (latitude, longitude) => {
+    const res = await fetch(`${API_BASE_URL}/drivers/me/location`, {
+      method: "POST",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ latitude, longitude }),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
 };

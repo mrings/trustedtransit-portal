@@ -21,8 +21,14 @@ const inputStyle = {
 
 export default function Admin({ me, onChange }) {
   const [form, setForm] = useState(null);
+  const [editingFacility, setEditingFacility] = useState(false);
   const [savingFacility, setSavingFacility] = useState(false);
   const [facilityMsg, setFacilityMsg] = useState("");
+
+  const [domains, setDomains] = useState([]);
+  const [domainInput, setDomainInput] = useState("");
+  const [domainBusy, setDomainBusy] = useState(false);
+  const [domainMsg, setDomainMsg] = useState("");
 
   const [staff, setStaff] = useState([]);
   const [unlinked, setUnlinked] = useState([]);
@@ -53,10 +59,45 @@ export default function Admin({ me, onChange }) {
           state: f.state || "",
           zip: f.zip || "",
           phone: f.phone || "",
-          emailDomain: f.emailDomain || "",
         });
       })
       .catch(() => setFacilityMsg("Could not load facility."));
+
+  const loadDomains = () =>
+    api
+      .getFacilityDomains(me.facilityId)
+      .then(setDomains)
+      .catch((err) => setDomainMsg(err.message));
+
+  const addDomain = async (e) => {
+    e.preventDefault();
+    if (!domainInput.trim()) return;
+    setDomainBusy(true);
+    setDomainMsg("");
+    try {
+      await api.addFacilityDomain(me.facilityId, domainInput.trim());
+      setDomainInput("");
+      await loadDomains();
+    } catch (err) {
+      setDomainMsg(err.message);
+    } finally {
+      setDomainBusy(false);
+    }
+  };
+
+  const removeDomain = async (domainId) => {
+    if (!window.confirm("Remove this domain? Staff will no longer auto-join using it.")) return;
+    setDomainBusy(true);
+    setDomainMsg("");
+    try {
+      await api.removeFacilityDomain(me.facilityId, domainId);
+      await loadDomains();
+    } catch (err) {
+      setDomainMsg(err.message);
+    } finally {
+      setDomainBusy(false);
+    }
+  };
 
   const loadStaff = () => {
     api.getUsers().then(setStaff).catch((err) => setStaffMsg(err.message));
@@ -78,6 +119,7 @@ export default function Admin({ me, onChange }) {
   useEffect(() => {
     if (me?.facilityId) {
       loadFacility();
+      loadDomains();
       loadStaff();
       loadNotif();
     }
@@ -91,6 +133,7 @@ export default function Admin({ me, onChange }) {
     try {
       await api.updateFacility(me.facilityId, form);
       setFacilityMsg("Saved.");
+      setEditingFacility(false);
       await loadFacility();
       onChange?.();
     } catch (err) {
@@ -98,6 +141,12 @@ export default function Admin({ me, onChange }) {
     } finally {
       setSavingFacility(false);
     }
+  };
+
+  const cancelEditFacility = () => {
+    setEditingFacility(false);
+    setFacilityMsg("");
+    loadFacility();
   };
 
   const changeRole = async (userId, role) => {
@@ -151,41 +200,97 @@ export default function Admin({ me, onChange }) {
     <>
       <div className="card">
         <h2>Facility settings</h2>
-        <form onSubmit={saveFacility}>
-          {FIELDS.map(([key, label]) => (
-            <div key={key} style={{ marginBottom: "16px" }}>
-              <label style={{ display: "block", marginBottom: "8px" }}>{label}</label>
-              <input
-                type="text"
-                value={form[key]}
-                onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                style={inputStyle}
-              />
-            </div>
-          ))}
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", marginBottom: "8px" }}>Staff email domain</label>
-            <input
-              type="text"
-              placeholder="e.g. sunriseseniorliving.com"
-              value={form.emailDomain}
-              onChange={(e) => setForm({ ...form, emailDomain: e.target.value })}
-              style={inputStyle}
-            />
-            <small style={{ color: "#666" }}>
-              Anyone who signs in with a verified email at this domain automatically joins as a
-              member. Personal-email providers (gmail.com, etc.) can't be used.
-            </small>
+        {!editingFacility ? (
+          <div>
+            <p style={{ fontSize: "16px", fontWeight: 600 }}>{form.name || <span className="muted">(no name on file)</span>}</p>
+            <p className="muted">
+              {[form.address, form.city, [form.state, form.zip].filter(Boolean).join(" ")]
+                .filter(Boolean)
+                .join(", ") || "No address on file"}
+            </p>
+            <p className="muted">{form.phone || "No phone on file"}</p>
+            <button className="button secondary sm" style={{ marginTop: "12px" }} onClick={() => setEditingFacility(true)}>
+              Edit
+            </button>
+            {facilityMsg && (
+              <p style={{ color: facilityMsg === "Saved." ? "green" : "#d33", marginTop: "10px" }}>{facilityMsg}</p>
+            )}
           </div>
-          <button className="button" type="submit" disabled={savingFacility}>
-            {savingFacility ? "Saving…" : "Save changes"}
+        ) : (
+          <form onSubmit={saveFacility}>
+            {FIELDS.map(([key, label]) => (
+              <div key={key} style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", marginBottom: "8px" }}>{label}</label>
+                <input
+                  type="text"
+                  value={form[key]}
+                  onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                  style={inputStyle}
+                />
+              </div>
+            ))}
+            <div className="row-actions">
+              <button className="button" type="submit" disabled={savingFacility}>
+                {savingFacility ? "Saving…" : "Save changes"}
+              </button>
+              <button type="button" className="button secondary" onClick={cancelEditFacility} disabled={savingFacility}>
+                Cancel
+              </button>
+            </div>
+            {facilityMsg && (
+              <p style={{ color: facilityMsg === "Saved." ? "green" : "#d33", marginTop: "10px" }}>{facilityMsg}</p>
+            )}
+          </form>
+        )}
+      </div>
+
+      <div className="card">
+        <h2>Staff email domains</h2>
+        <p className="muted" style={{ fontSize: "13px" }}>
+          Anyone who signs in with a verified email at one of these domains automatically joins as
+          a member. Personal providers (gmail.com, etc.) can't be used — and to add a domain, you
+          must be signed in with a verified email at that exact domain, which proves your
+          organization owns it.
+        </p>
+        {domains.length > 0 && (
+          <div style={{ overflowX: "auto", marginTop: "12px" }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Domain</th>
+                  <th>Added by</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {domains.map((d) => (
+                  <tr key={d.id}>
+                    <td className="mono">{d.domain}</td>
+                    <td className="muted">{d.addedByEmail || "—"}</td>
+                    <td>
+                      <button className="button danger sm" disabled={domainBusy} onClick={() => removeDomain(d.id)}>
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <form onSubmit={addDomain} className="row-actions" style={{ marginTop: "12px" }}>
+          <input
+            className="input"
+            style={{ maxWidth: "280px" }}
+            placeholder="yourcompany.com"
+            value={domainInput}
+            onChange={(e) => setDomainInput(e.target.value)}
+          />
+          <button className="button sm" type="submit" disabled={domainBusy}>
+            {domainBusy ? "Adding…" : "Add domain"}
           </button>
-          {facilityMsg && (
-            <span style={{ marginLeft: "12px", color: facilityMsg === "Saved." ? "green" : "#d33" }}>
-              {facilityMsg}
-            </span>
-          )}
         </form>
+        {domainMsg && <p style={{ color: "#d9453d", marginTop: "8px" }}>{domainMsg}</p>}
       </div>
 
       {notif && (

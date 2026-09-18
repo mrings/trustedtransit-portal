@@ -56,6 +56,28 @@ export const api = {
     if (!res.ok) throw await parseError(res);
   },
 
+  getFacilityDomains: async (facilityId) => {
+    const res = await fetch(`${API_BASE_URL}/facilities/${facilityId}/domains`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  addFacilityDomain: async (facilityId, domain) => {
+    const res = await fetch(`${API_BASE_URL}/facilities/${facilityId}/domains`, {
+      method: "POST",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ domain }),
+    });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  removeFacilityDomain: async (facilityId, domainId) => {
+    const res = await fetch(`${API_BASE_URL}/facilities/${facilityId}/domains/${domainId}`, {
+      method: "DELETE",
+      headers: await authHeaders(),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+
   getDashboard: async () => {
     const res = await fetch(`${API_BASE_URL}/dashboard`, { headers: await authHeaders() });
     if (!res.ok) throw await parseError(res);

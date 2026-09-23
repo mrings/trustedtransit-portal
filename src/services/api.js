@@ -7,21 +7,40 @@ export function setTokenProvider(fn) {
   tokenProvider = fn;
 }
 
+// Called when a token can't be obtained, or the API rejects one with 401 — normally
+// App.jsx wires this to Auth0's loginWithRedirect() to re-establish the session.
+let onUnauthorized = null;
+export function setUnauthorizedHandler(fn) {
+  onUnauthorized = fn;
+}
+let redirecting = false; // guard against every in-flight request re-triggering the redirect
+
 async function authHeaders(extra = {}) {
   const headers = { ...extra };
   if (tokenProvider) {
     try {
       const token = await tokenProvider();
-      if (token) headers.Authorization = `Bearer ${token}`;
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+        return headers;
+      }
     } catch {
-      // not logged in / token unavailable — send the request unauthenticated
+      // fall through — treat "couldn't get a token" the same as "server rejected it"
     }
+    triggerReauth();
   }
   return headers;
 }
 
+function triggerReauth() {
+  if (redirecting) return;
+  redirecting = true;
+  onUnauthorized?.();
+}
+
 async function parseError(res) {
   const text = await res.text();
+  if (res.status === 401) triggerReauth();
   return new Error(`API error: ${res.status} - ${text}`);
 }
 
@@ -29,6 +48,7 @@ export const api = {
   // Facilities
   getFacilities: async () => {
     const res = await fetch(`${API_BASE_URL}/facilities`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
     return res.json();
   },
 
@@ -44,6 +64,7 @@ export const api = {
       headers: await authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(data),
     });
+    if (!res.ok) throw await parseError(res);
     return res.json();
   },
 
@@ -326,6 +347,7 @@ export const api = {
   // Drivers
   getDrivers: async () => {
     const res = await fetch(`${API_BASE_URL}/drivers`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
     return res.json();
   },
 

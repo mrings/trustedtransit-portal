@@ -8,7 +8,7 @@ import Billing from "./components/Billing";
 import Admin from "./components/Admin";
 import Subscription from "./components/Subscription";
 import DriverView from "./components/DriverView";
-import { api, setTokenProvider, setUnauthorizedHandler } from "./services/api";
+import { api, setTokenProvider } from "./services/api";
 import "./App.css";
 
 function App() {
@@ -29,15 +29,10 @@ function App() {
   const [linking, setLinking] = useState(false);
   const [linkChoice, setLinkChoice] = useState("");
 
-  // Give the API client a way to fetch the current access token, and a way to force a
-  // fresh login if a token can't be obtained or the API rejects one (expired session).
+  // Give the API client a way to fetch the current access token.
   useEffect(() => {
     setTokenProvider(isAuthenticated ? getAccessTokenSilently : null);
   }, [isAuthenticated, getAccessTokenSilently]);
-
-  useEffect(() => {
-    setUnauthorizedHandler(() => loginWithRedirect());
-  }, [loginWithRedirect]);
 
   const loadMe = () =>
     api

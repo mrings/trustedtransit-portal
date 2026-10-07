@@ -28,6 +28,7 @@ function App() {
   const [facilities, setFacilities] = useState([]);
   const [linking, setLinking] = useState(false);
   const [linkChoice, setLinkChoice] = useState("");
+  const [becomingDriver, setBecomingDriver] = useState(false);
 
   // Give the API client a way to fetch the current access token.
   useEffect(() => {
@@ -69,6 +70,18 @@ function App() {
     }
   };
 
+  const handleBecomeDriver = async () => {
+    setBecomingDriver(true);
+    try {
+      await api.becomeDriver();
+      await loadMe();
+    } catch (err) {
+      setMeError(err.message);
+    } finally {
+      setBecomingDriver(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="app"><main className="content"><p>Loading…</p></main></div>;
   }
@@ -95,7 +108,7 @@ function App() {
         <main className="content">
           <div className="card">
             <h2>Sign in</h2>
-            <p>You need to sign in to manage your facility.</p>
+            <p>Sign in to manage your facility, or as an independent driver.</p>
             <button className="button" onClick={() => loginWithRedirect()}>
               Log In
             </button>
@@ -215,6 +228,13 @@ function App() {
             ) : (
               <p>No facilities exist yet — an administrator needs to create one.</p>
             )}
+            <p style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #eee" }}>
+              Not facility staff? Drivers are independent — not part of any facility — and
+              manage their own rides and location from a separate dashboard.
+            </p>
+            <button className="button secondary" onClick={handleBecomeDriver} disabled={becomingDriver}>
+              {becomingDriver ? "Setting up…" : "I'm an independent driver"}
+            </button>
           </div>
         )}
 

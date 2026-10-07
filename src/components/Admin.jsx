@@ -10,7 +10,7 @@ const FIELDS = [
   ["phone", "Phone"],
 ];
 
-const ROLES = ["admin", "user", "driver"];
+const ROLES = ["admin", "user"];
 
 const inputStyle = {
   width: "100%",

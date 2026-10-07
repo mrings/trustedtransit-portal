@@ -171,6 +171,14 @@ export const api = {
     if (!res.ok) throw await parseError(res);
   },
 
+  becomeDriver: async () => {
+    const res = await fetch(`${API_BASE_URL}/users/me/driver`, {
+      method: "POST",
+      headers: await authHeaders(),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+
   // Staff (admin)
   getUsers: async () => {
     const res = await fetch(`${API_BASE_URL}/users`, { headers: await authHeaders() });

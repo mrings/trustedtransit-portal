@@ -29,6 +29,7 @@ export const api = {
   // Facilities
   getFacilities: async () => {
     const res = await fetch(`${API_BASE_URL}/facilities`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
     return res.json();
   },
 
@@ -44,6 +45,7 @@ export const api = {
       headers: await authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(data),
     });
+    if (!res.ok) throw await parseError(res);
     return res.json();
   },
 
@@ -76,6 +78,65 @@ export const api = {
       headers: await authHeaders(),
     });
     if (!res.ok) throw await parseError(res);
+  },
+
+  // Transport companies (NEMT)
+  getCompany: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/companies/${id}`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  createCompany: async (data) => {
+    const res = await fetch(`${API_BASE_URL}/companies`, {
+      method: "POST",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  updateCompany: async (id, data) => {
+    const res = await fetch(`${API_BASE_URL}/companies/${id}`, {
+      method: "PATCH",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+  getCompanyDomains: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/companies/${id}/domains`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  addCompanyDomain: async (id, domain) => {
+    const res = await fetch(`${API_BASE_URL}/companies/${id}/domains`, {
+      method: "POST",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ domain }),
+    });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  removeCompanyDomain: async (id, domainId) => {
+    const res = await fetch(`${API_BASE_URL}/companies/${id}/domains/${domainId}`, {
+      method: "DELETE",
+      headers: await authHeaders(),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+  getCompanyDrivers: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/companies/${id}/drivers`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  createCompanyDriver: async (id, data) => {
+    const res = await fetch(`${API_BASE_URL}/companies/${id}/drivers`, {
+      method: "POST",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
   },
 
   getDashboard: async () => {
@@ -334,6 +395,7 @@ export const api = {
   // Drivers
   getDrivers: async () => {
     const res = await fetch(`${API_BASE_URL}/drivers`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
     return res.json();
   },
 

@@ -124,6 +124,7 @@ export default function DriverView() {
       {!editing ? (
         <div style={{ marginBottom: "20px" }}>
           <p>{profile?.firstName} {profile?.lastName}</p>
+          <p className="muted">{profile?.transportCompanyName || "Independent driver"}</p>
           <p className="muted">{profile?.phone || "no phone"} · {profile?.vehicleType || "no vehicle"} {profile?.vehiclePlate}</p>
           <button className="button secondary sm" onClick={() => setEditing(true)}>Edit profile</button>
         </div>

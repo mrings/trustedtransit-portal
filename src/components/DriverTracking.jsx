@@ -218,7 +218,10 @@ export default function DriverTracking({ isAdmin }) {
               />
             ) : (
               <div key={d.id} style={{ background: "#f9f9f9", padding: "16px", borderRadius: "8px", border: "1px solid #ddd" }}>
-                <h3 style={{ marginBottom: "10px" }}>{d.firstName} {d.lastName}</h3>
+                <h3 style={{ marginBottom: "4px" }}>{d.firstName} {d.lastName}</h3>
+                <p className="muted" style={{ marginBottom: "10px" }}>
+                  {d.transportCompanyName || "Independent driver"}
+                </p>
                 <p><strong>Phone:</strong> {d.phone || "—"}</p>
                 <p><strong>Vehicle:</strong> {d.vehicleType || "—"} {d.vehiclePlate ? `(${d.vehiclePlate})` : ""}</p>
                 <p><strong>Rating:</strong> ⭐ {d.rating}</p>

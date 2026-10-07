@@ -8,6 +8,7 @@ import Billing from "./components/Billing";
 import Admin from "./components/Admin";
 import Subscription from "./components/Subscription";
 import DriverView from "./components/DriverView";
+import CompanyAdmin from "./components/CompanyAdmin";
 import { api, setTokenProvider } from "./services/api";
 import "./App.css";
 
@@ -29,6 +30,9 @@ function App() {
   const [linking, setLinking] = useState(false);
   const [linkChoice, setLinkChoice] = useState("");
   const [becomingDriver, setBecomingDriver] = useState(false);
+  const [registeringCompany, setRegisteringCompany] = useState(false);
+  const [companyName, setCompanyName] = useState("");
+  const [creatingCompany, setCreatingCompany] = useState(false);
 
   // Give the API client a way to fetch the current access token.
   useEffect(() => {
@@ -82,6 +86,20 @@ function App() {
     }
   };
 
+  const handleCreateCompany = async (e) => {
+    e.preventDefault();
+    if (!companyName.trim()) return;
+    setCreatingCompany(true);
+    try {
+      await api.createCompany({ name: companyName.trim() });
+      await loadMe();
+    } catch (err) {
+      setMeError(err.message);
+    } finally {
+      setCreatingCompany(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="app"><main className="content"><p>Loading…</p></main></div>;
   }
@@ -121,6 +139,7 @@ function App() {
   const facilityId = me?.facilityId ?? null;
   const isAdmin = me?.role === "admin";
   const isDriver = me?.role === "driver";
+  const isCompanyAdmin = isAdmin && !!me?.transportCompanyId;
   const tabs = ["dashboard", "rides", "residents", "drivers", "billing", ...(isAdmin ? ["admin", "subscription"] : [])];
   const tabLabel = (t) =>
     t === "drivers" ? "Drivers" : t.charAt(0).toUpperCase() + t.slice(1);
@@ -144,6 +163,30 @@ function App() {
         </header>
         <main className="content">
           <DriverView />
+        </main>
+      </div>
+    );
+  }
+
+  if (isCompanyAdmin) {
+    return (
+      <div className="app">
+        <header className="header">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <h1>Trusted Transit — Transportation Company</h1>
+              <p>{user?.email}</p>
+            </div>
+            <button
+              className="button"
+              onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+            >
+              Log Out
+            </button>
+          </div>
+        </header>
+        <main className="content">
+          <CompanyAdmin me={me} />
         </main>
       </div>
     );
@@ -235,6 +278,33 @@ function App() {
             <button className="button secondary" onClick={handleBecomeDriver} disabled={becomingDriver}>
               {becomingDriver ? "Setting up…" : "I'm an independent driver"}
             </button>
+
+            <p style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #eee" }}>
+              Run a transportation company? Register it to manage your own roster of drivers —
+              facilities can then book any of your drivers, same as independent ones.
+            </p>
+            {!registeringCompany ? (
+              <button className="button secondary" onClick={() => setRegisteringCompany(true)}>
+                Register my transportation company
+              </button>
+            ) : (
+              <form onSubmit={handleCreateCompany} style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                <input
+                  type="text"
+                  placeholder="Company name"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  style={{ padding: "8px", borderRadius: "6px", border: "1px solid #ddd" }}
+                  autoFocus
+                />
+                <button className="button" type="submit" disabled={!companyName.trim() || creatingCompany}>
+                  {creatingCompany ? "Creating…" : "Create company"}
+                </button>
+                <button type="button" className="button secondary" onClick={() => setRegisteringCompany(false)}>
+                  Cancel
+                </button>
+              </form>
+            )}
           </div>
         )}
 

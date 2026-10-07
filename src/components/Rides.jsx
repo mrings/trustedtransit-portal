@@ -237,7 +237,9 @@ export default function Rides() {
                     >
                       <option value="">— unassigned —</option>
                       {activeDrivers.map((d) => (
-                        <option key={d.id} value={d.id}>{d.firstName} {d.lastName}</option>
+                        <option key={d.id} value={d.id}>
+                          {d.firstName} {d.lastName} — {d.transportCompanyName || "Independent"}
+                        </option>
                       ))}
                       {r.driverId && !activeDrivers.some((d) => d.id === r.driverId) && (
                         <option value={r.driverId}>{r.driverName} (inactive)</option>

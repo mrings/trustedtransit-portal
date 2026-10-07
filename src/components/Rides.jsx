@@ -156,6 +156,19 @@ export default function Rides() {
 
   const [expandedId, setExpandedId] = useState(null);
   const [notifs, setNotifs] = useState({});
+  const [linkMsg, setLinkMsg] = useState("");
+
+  const shareLink = async (ride) => {
+    try {
+      const { token } = await api.getRideTrackingLink(ride.id);
+      const url = `${window.location.origin}/track/${token}`;
+      await navigator.clipboard.writeText(url);
+      setLinkMsg(`Tracking link copied for ${ride.residentName}.`);
+    } catch (e) {
+      setLinkMsg(e.message);
+    }
+    setTimeout(() => setLinkMsg(""), 4000);
+  };
 
   const toggleNotifs = async (rideId) => {
     if (expandedId === rideId) {
@@ -180,6 +193,7 @@ export default function Rides() {
     <div className="card">
       <h2>Rides</h2>
       {error && <p style={{ color: "#d9453d", marginBottom: "12px" }}>{error}</p>}
+      {linkMsg && <p style={{ color: "#2f6fed", marginBottom: "12px" }}>{linkMsg}</p>}
 
       {!scheduling && (
         <button className="button" style={{ marginBottom: "16px" }} onClick={() => setScheduling(true)}>
@@ -205,6 +219,7 @@ export default function Rides() {
                 <th>Driver</th>
                 <th>Status</th>
                 <th>Family</th>
+                <th></th>
                 <th></th>
               </tr>
             </thead>
@@ -274,6 +289,15 @@ export default function Rides() {
                     </button>
                   </td>
                   <td>
+                    <button
+                      className="button secondary sm"
+                      title="Copy a no-login tracking link for this ride's family"
+                      onClick={() => shareLink(r)}
+                    >
+                      🔗 Share
+                    </button>
+                  </td>
+                  <td>
                     <button className="button danger sm" disabled={busy === r.id} onClick={() => remove(r)}>
                       Delete
                     </button>
@@ -281,7 +305,7 @@ export default function Rides() {
                 </tr>
                 {expandedId === r.id && (
                   <tr>
-                    <td colSpan={7} style={{ background: "#fafafa" }}>
+                    <td colSpan={8} style={{ background: "#fafafa" }}>
                       {!notifs[r.id] ? (
                         <span className="muted">Loading…</span>
                       ) : notifs[r.id].length === 0 ? (

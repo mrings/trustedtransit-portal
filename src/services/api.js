@@ -170,6 +170,18 @@ export const api = {
     if (!res.ok) throw await parseError(res);
     return res.json();
   },
+  getRideTrackingLink: async (rideId) => {
+    const res = await fetch(`${API_BASE_URL}/rides/${rideId}/tracking-link`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+
+  // Public (no login) family tracking page.
+  getPublicRideTracking: async (token) => {
+    const res = await fetch(`${API_BASE_URL}/public/rides/${token}`);
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
 
   getSubscription: async () => {
     const res = await fetch(`${API_BASE_URL}/subscription`, { headers: await authHeaders() });

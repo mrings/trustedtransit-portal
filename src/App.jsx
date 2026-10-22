@@ -4,7 +4,6 @@ import Dashboard from "./components/Dashboard";
 import Rides from "./components/Rides";
 import ResidentList from "./components/ResidentList";
 import DriverTracking from "./components/DriverTracking";
-import Billing from "./components/Billing";
 import Admin from "./components/Admin";
 import Subscription from "./components/Subscription";
 import DriverView from "./components/DriverView";
@@ -140,7 +139,7 @@ function App() {
   const isAdmin = me?.role === "admin";
   const isDriver = me?.role === "driver";
   const isCompanyAdmin = isAdmin && !!me?.transportCompanyId;
-  const tabs = ["dashboard", "rides", "residents", "drivers", "billing", ...(isAdmin ? ["admin", "subscription"] : [])];
+  const tabs = ["dashboard", "rides", "residents", "drivers", ...(isAdmin ? ["admin", "subscription"] : [])];
   const tabLabel = (t) =>
     t === "drivers" ? "Drivers" : t.charAt(0).toUpperCase() + t.slice(1);
 
@@ -312,7 +311,6 @@ function App() {
         {activeTab === "rides" && facilityId && <Rides />}
         {activeTab === "residents" && facilityId && <ResidentList />}
         {activeTab === "drivers" && <DriverTracking isAdmin={isAdmin} />}
-        {activeTab === "billing" && <Billing />}
         {activeTab === "admin" && isAdmin && <Admin me={me} onChange={loadMe} />}
         {activeTab === "subscription" && isAdmin && <Subscription />}
       </main>

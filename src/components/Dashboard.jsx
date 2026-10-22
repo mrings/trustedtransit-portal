@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../services/api";
 
-const money = (n) =>
-  new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n || 0);
-
 function Stat({ value, label }) {
   return (
     <div style={{ padding: "20px", background: "#f0f0f0", borderRadius: "8px", textAlign: "center" }}>
@@ -44,7 +41,6 @@ export default function Dashboard() {
           <Stat value={data?.activeDrivers ?? 0} label="Active Drivers" />
           <Stat value={data?.residents ?? 0} label="Residents" />
           <Stat value={data?.completedThisMonth ?? 0} label="Completed This Month" />
-          <Stat value={money(data?.billedThisMonth)} label="Billed This Month" />
         </div>
       )}
     </div>

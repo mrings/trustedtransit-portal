@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../services/api";
+import DriverMap from "./DriverMap";
 
 const FIELDS = [
   ["name", "Company name"],
@@ -69,6 +70,14 @@ export default function CompanyAdmin({ me }) {
       loadDomains();
       loadDrivers();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId]);
+
+  // Keep the live-tracking map fresh without re-fetching company/domain data too.
+  useEffect(() => {
+    if (!companyId) return;
+    const t = setInterval(loadDrivers, 20000);
+    return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId]);
 
@@ -306,6 +315,11 @@ export default function CompanyAdmin({ me }) {
           </button>
         </form>
         {domainMsg && <p style={{ color: "#d9453d", marginTop: "8px" }}>{domainMsg}</p>}
+      </div>
+
+      <div className="card">
+        <h2>Live tracking</h2>
+        <DriverMap drivers={drivers} emptyMessage="None of your drivers are sharing their location right now." />
       </div>
 
       <div className="card">

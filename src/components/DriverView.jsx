@@ -108,6 +108,20 @@ export default function DriverView() {
       <h2>My Driver Dashboard</h2>
       {error && <p style={{ color: "#d9453d" }}>{error}</p>}
 
+      {profile && profile.backgroundCheckStatus !== "approved" && (
+        <div
+          className="card"
+          style={{
+            borderLeft: `4px solid ${profile.backgroundCheckStatus === "rejected" ? "#d9453d" : "#e8a33d"}`,
+            marginBottom: "20px",
+          }}
+        >
+          {profile.backgroundCheckStatus === "rejected"
+            ? "Your background check wasn't approved, so you can't be assigned rides. Contact TrustedTransit support if you think this is a mistake."
+            : "Your background check is pending review — you can set up your profile now, but facilities can't assign you rides until TrustedTransit approves it."}
+        </div>
+      )}
+
       <div style={{ padding: "16px", background: "#f9f9f9", borderRadius: "8px", marginBottom: "20px" }}>
         <label style={{ display: "flex", alignItems: "center", gap: "10px", fontWeight: 600 }}>
           <input type="checkbox" checked={sharing} onChange={(e) => setSharing(e.target.checked)} />

@@ -186,7 +186,7 @@ export default function Rides() {
     }
   };
 
-  const activeDrivers = drivers.filter((d) => d.status === "active");
+  const activeDrivers = drivers.filter((d) => d.status === "active" && d.backgroundCheckStatus === "approved");
 
   return (
     <>
@@ -257,7 +257,7 @@ export default function Rides() {
                         </option>
                       ))}
                       {r.driverId && !activeDrivers.some((d) => d.id === r.driverId) && (
-                        <option value={r.driverId}>{r.driverName} (inactive)</option>
+                        <option value={r.driverId}>{r.driverName} (unavailable)</option>
                       )}
                     </select>
                   </td>

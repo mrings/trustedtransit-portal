@@ -229,6 +229,15 @@ export default function DriverTracking({ isAdmin }) {
                   <strong>Status:</strong>{" "}
                   <span style={{ color: d.status === "active" ? "green" : "#d9453d", fontWeight: 600 }}>{d.status}</span>
                 </p>
+                <p>
+                  <strong>Vetting:</strong>{" "}
+                  <span style={{ color: d.backgroundCheckStatus === "approved" ? "green" : "#e8a33d", fontWeight: 600 }}>
+                    {d.backgroundCheckStatus}
+                  </span>
+                  {d.backgroundCheckStatus !== "approved" && (
+                    <span className="muted"> — not bookable until approved by TrustedTransit</span>
+                  )}
+                </p>
                 <p className="mono" title="Driver ID">{d.id}</p>
                 {isAdmin && (
                   <div className="row-actions" style={{ marginTop: "10px" }}>

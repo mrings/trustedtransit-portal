@@ -265,6 +265,32 @@ export const api = {
     });
     if (!res.ok) throw await parseError(res);
   },
+  getSupportDrivers: async () => {
+    const res = await fetch(`${API_BASE_URL}/support/drivers`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  vetDriver: async (id, status) => {
+    const res = await fetch(`${API_BASE_URL}/support/drivers/${id}/vet`, {
+      method: "POST",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+  getSupportCompanies: async () => {
+    const res = await fetch(`${API_BASE_URL}/support/companies`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  vetCompany: async (id, status) => {
+    const res = await fetch(`${API_BASE_URL}/support/companies/${id}/vet`, {
+      method: "POST",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
 
   // Staff (admin)
   getUsers: async () => {

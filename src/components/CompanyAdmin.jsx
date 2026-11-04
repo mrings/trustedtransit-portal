@@ -23,6 +23,7 @@ export default function CompanyAdmin({ me }) {
   const companyId = me.transportCompanyId;
 
   const [form, setForm] = useState(null);
+  const [companyStatus, setCompanyStatus] = useState("");
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [companyMsg, setCompanyMsg] = useState("");
@@ -50,6 +51,7 @@ export default function CompanyAdmin({ me }) {
           zip: c.zip || "",
           phone: c.phone || "",
         });
+        setCompanyStatus(c.status || "");
       })
       .catch(() => setCompanyMsg("Could not load company."));
 
@@ -171,6 +173,19 @@ export default function CompanyAdmin({ me }) {
     <>
       <div className="card">
         <h2>Company settings</h2>
+        {companyStatus && companyStatus !== "active" && (
+          <p
+            style={{
+              marginBottom: "12px",
+              color: companyStatus === "rejected" ? "#d9453d" : "#e8a33d",
+              fontWeight: 600,
+            }}
+          >
+            {companyStatus === "rejected"
+              ? "This company was not approved by TrustedTransit."
+              : "Pending TrustedTransit review — your drivers can still be added and vetted individually in the meantime."}
+          </p>
+        )}
         {!editing ? (
           <div>
             <p style={{ fontSize: "16px", fontWeight: 600 }}>{form.name || <span className="muted">(no name on file)</span>}</p>
@@ -267,9 +282,10 @@ export default function CompanyAdmin({ me }) {
       <div className="card">
         <h2>Driver roster</h2>
         <p className="muted" style={{ fontSize: "13px" }}>
-          Facilities can book any of these drivers, same as independent ones — this is just your
-          own roster view. Drivers who've signed in themselves show "has login"; others are
-          placeholders you manage until they sign up.
+          Facilities can book any of these drivers, same as independent ones, once TrustedTransit
+          has approved their vetting — that's a platform review, not something you can set here.
+          Drivers who've signed in themselves show "has login"; others are placeholders you
+          manage until they sign up.
         </p>
         {driverMsg && <p style={{ color: "#d9453d", marginTop: "8px" }}>{driverMsg}</p>}
 
@@ -284,6 +300,7 @@ export default function CompanyAdmin({ me }) {
                   <th>Phone</th>
                   <th>Vehicle</th>
                   <th>Login</th>
+                  <th>Vetting</th>
                   <th>Status</th>
                   <th></th>
                 </tr>
@@ -295,6 +312,11 @@ export default function CompanyAdmin({ me }) {
                     <td>{d.phone || "—"}</td>
                     <td>{d.vehicleType || "—"} {d.vehiclePlate ? `(${d.vehiclePlate})` : ""}</td>
                     <td className="muted">{d.hasLogin ? "yes" : "no"}</td>
+                    <td>
+                      <span style={{ color: d.backgroundCheckStatus === "approved" ? "green" : "#e8a33d", fontWeight: 600 }}>
+                        {d.backgroundCheckStatus}
+                      </span>
+                    </td>
                     <td>
                       <select
                         value={d.status}

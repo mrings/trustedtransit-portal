@@ -245,6 +245,27 @@ export const api = {
     if (!res.ok) throw await parseError(res);
   },
 
+  // Platform support (super admin only)
+  getSupportFacilities: async () => {
+    const res = await fetch(`${API_BASE_URL}/support/facilities`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  impersonateFacility: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/support/facilities/${id}/impersonate`, {
+      method: "POST",
+      headers: await authHeaders(),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+  exitSupportImpersonation: async () => {
+    const res = await fetch(`${API_BASE_URL}/support/exit`, {
+      method: "POST",
+      headers: await authHeaders(),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+
   // Staff (admin)
   getUsers: async () => {
     const res = await fetch(`${API_BASE_URL}/users`, { headers: await authHeaders() });

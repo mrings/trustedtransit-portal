@@ -8,6 +8,7 @@ import Admin from "./components/Admin";
 import Subscription from "./components/Subscription";
 import DriverView from "./components/DriverView";
 import CompanyAdmin from "./components/CompanyAdmin";
+import Support from "./components/Support";
 import { api, setTokenProvider } from "./services/api";
 import "./App.css";
 
@@ -32,6 +33,7 @@ function App() {
   const [registeringCompany, setRegisteringCompany] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [creatingCompany, setCreatingCompany] = useState(false);
+  const [exitingSupport, setExitingSupport] = useState(false);
 
   // Give the API client a way to fetch the current access token.
   useEffect(() => {
@@ -99,6 +101,18 @@ function App() {
     }
   };
 
+  const handleExitSupport = async () => {
+    setExitingSupport(true);
+    try {
+      await api.exitSupportImpersonation();
+      await loadMe();
+    } catch (err) {
+      setMeError(err.message);
+    } finally {
+      setExitingSupport(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="app"><main className="content"><p>Loading…</p></main></div>;
   }
@@ -139,7 +153,15 @@ function App() {
   const isAdmin = me?.role === "admin";
   const isDriver = me?.role === "driver";
   const isCompanyAdmin = isAdmin && !!me?.transportCompanyId;
-  const tabs = ["dashboard", "rides", "residents", "drivers", ...(isAdmin ? ["admin", "subscription"] : [])];
+  const isSuperAdmin = me?.isSuperAdmin === true;
+  const tabs = [
+    "dashboard",
+    "rides",
+    "residents",
+    "drivers",
+    ...(isAdmin ? ["admin", "subscription"] : []),
+    ...(isSuperAdmin ? ["support"] : []),
+  ];
   const tabLabel = (t) =>
     t === "drivers" ? "Drivers" : t.charAt(0).toUpperCase() + t.slice(1);
 
@@ -191,6 +213,32 @@ function App() {
     );
   }
 
+  // Platform staff with no facility currently selected — just the support picker, not the
+  // join-a-facility/become-a-driver prompts meant for regular new accounts.
+  if (isSuperAdmin && !facilityId) {
+    return (
+      <div className="app">
+        <header className="header">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <h1>Trusted Transit — Support</h1>
+              <p>{user?.email}</p>
+            </div>
+            <button
+              className="button"
+              onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+            >
+              Log Out
+            </button>
+          </div>
+        </header>
+        <main className="content">
+          <Support onChange={loadMe} />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       <header className="header">
@@ -233,6 +281,19 @@ function App() {
         {meError && (
           <div className="card" style={{ borderLeft: "4px solid #d33", color: "#d33" }}>
             {meError}
+          </div>
+        )}
+        {isSuperAdmin && facilityId && (
+          <div
+            className="card"
+            style={{ borderLeft: "4px solid #667eea", display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}
+          >
+            <span>
+              Support mode — acting as <strong>{me.facilityName || "this facility"}</strong>'s admin.
+            </span>
+            <button className="button sm" onClick={handleExitSupport} disabled={exitingSupport}>
+              {exitingSupport ? "Exiting…" : "Exit"}
+            </button>
           </div>
         )}
         {me && facilityId && me.subscriptionActive === false && (
@@ -313,6 +374,7 @@ function App() {
         {activeTab === "drivers" && <DriverTracking isAdmin={isAdmin} />}
         {activeTab === "admin" && isAdmin && <Admin me={me} onChange={loadMe} />}
         {activeTab === "subscription" && isAdmin && <Subscription />}
+        {activeTab === "support" && isSuperAdmin && <Support onChange={loadMe} />}
       </main>
     </div>
   );

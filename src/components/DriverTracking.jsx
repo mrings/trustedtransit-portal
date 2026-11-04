@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../services/api";
 import DriverMap from "./DriverMap";
 
-const EMPTY = { firstName: "", lastName: "", phone: "", vehicleType: "", vehiclePlate: "" };
+const EMPTY = { firstName: "", lastName: "", phone: "", vehicleType: "", vehiclePlate: "", email: "" };
 
 function DriverForm({ initial, onSubmit, onCancel, submitLabel, withStatus }) {
   const [data, setData] = useState(initial);
@@ -35,6 +35,16 @@ function DriverForm({ initial, onSubmit, onCancel, submitLabel, withStatus }) {
         <div className="field">
           <label>Vehicle plate</label>
           <input className="input" value={data.vehiclePlate} onChange={set("vehiclePlate")} />
+        </div>
+        <div className="field">
+          <label>Invite email (optional)</label>
+          <input
+            className="input"
+            type="email"
+            placeholder="So they can sign in and claim this driver"
+            value={data.email}
+            onChange={set("email")}
+          />
         </div>
         {withStatus && (
           <div className="field">
@@ -144,6 +154,7 @@ export default function DriverTracking({ isAdmin }) {
                   phone: d.phone || "",
                   vehicleType: d.vehicleType || "",
                   vehiclePlate: d.vehiclePlate || "",
+                  email: d.email || "",
                   status: d.status || "active",
                 }}
                 withStatus
@@ -159,6 +170,9 @@ export default function DriverTracking({ isAdmin }) {
                 </p>
                 <p><strong>Phone:</strong> {d.phone || "—"}</p>
                 <p><strong>Vehicle:</strong> {d.vehicleType || "—"} {d.vehiclePlate ? `(${d.vehiclePlate})` : ""}</p>
+                {!d.hasLogin && d.email && (
+                  <p className="muted">Invited: {d.email} (hasn't signed in yet)</p>
+                )}
                 <p><strong>Rating:</strong> ⭐ {d.rating}</p>
                 <p>
                   <strong>Status:</strong>{" "}

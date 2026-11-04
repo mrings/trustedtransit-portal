@@ -11,7 +11,7 @@ const FIELDS = [
   ["phone", "Phone"],
 ];
 
-const EMPTY_DRIVER = { firstName: "", lastName: "", phone: "", vehicleType: "", vehiclePlate: "" };
+const EMPTY_DRIVER = { firstName: "", lastName: "", phone: "", vehicleType: "", vehiclePlate: "", email: "" };
 
 const inputStyle = {
   width: "100%",
@@ -157,6 +157,7 @@ export default function CompanyAdmin({ me }) {
       phone: d.phone || "",
       vehicleType: d.vehicleType || "",
       vehiclePlate: d.vehiclePlate || "",
+      email: d.email || "",
     });
     setDriverMsg("");
   };
@@ -327,8 +328,8 @@ export default function CompanyAdmin({ me }) {
         <p className="muted" style={{ fontSize: "13px" }}>
           Facilities can book any of these drivers, same as independent ones, once TrustedTransit
           has approved their vetting — that's a platform review, not something you can set here.
-          Drivers who've signed in themselves show "has login"; others are placeholders you
-          manage until they sign up.
+          Give a placeholder driver their email and the first time they sign into the portal with
+          it, their account links to this exact roster row — no claimed domain needed.
         </p>
         {driverMsg && <p style={{ color: "#d9453d", marginTop: "8px" }}>{driverMsg}</p>}
 
@@ -343,6 +344,7 @@ export default function CompanyAdmin({ me }) {
                   <th>Phone</th>
                   <th>Vehicle</th>
                   <th>Login</th>
+                  <th>Invite email</th>
                   <th>Vetting</th>
                   <th>Status</th>
                   <th></th>
@@ -352,7 +354,7 @@ export default function CompanyAdmin({ me }) {
                 {drivers.map((d) =>
                   editingId === d.id ? (
                     <tr key={d.id}>
-                      <td colSpan={7}>
+                      <td colSpan={8}>
                         <form
                           onSubmit={saveEditDriver}
                           style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", padding: "8px 0" }}
@@ -395,6 +397,14 @@ export default function CompanyAdmin({ me }) {
                             value={editForm.vehiclePlate}
                             onChange={(e) => setEditForm({ ...editForm, vehiclePlate: e.target.value })}
                           />
+                          <input
+                            className="input"
+                            style={{ width: "180px" }}
+                            type="email"
+                            placeholder="Invite email (optional)"
+                            value={editForm.email}
+                            onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                          />
                           <button className="button sm" type="submit" disabled={busyDriver === d.id}>
                             {busyDriver === d.id ? "Saving…" : "Save"}
                           </button>
@@ -410,6 +420,7 @@ export default function CompanyAdmin({ me }) {
                       <td>{d.phone || "—"}</td>
                       <td>{d.vehicleType || "—"} {d.vehiclePlate ? `(${d.vehiclePlate})` : ""}</td>
                       <td className="muted">{d.hasLogin ? "yes" : "no"}</td>
+                      <td className="muted">{d.hasLogin ? "—" : (d.email || "none set")}</td>
                       <td>
                         <span style={{ color: d.backgroundCheckStatus === "approved" ? "green" : "#e8a33d", fontWeight: 600 }}>
                           {d.backgroundCheckStatus}
@@ -468,6 +479,16 @@ export default function CompanyAdmin({ me }) {
               <div className="field">
                 <label>Vehicle plate</label>
                 <input className="input" value={newDriver.vehiclePlate} onChange={(e) => setNewDriver({ ...newDriver, vehiclePlate: e.target.value })} />
+              </div>
+              <div className="field">
+                <label>Invite email (optional)</label>
+                <input
+                  className="input"
+                  type="email"
+                  placeholder="So they can sign in and claim this driver"
+                  value={newDriver.email}
+                  onChange={(e) => setNewDriver({ ...newDriver, email: e.target.value })}
+                />
               </div>
             </div>
             <div className="row-actions">

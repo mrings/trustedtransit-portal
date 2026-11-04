@@ -38,6 +38,8 @@ export default function CompanyAdmin({ me }) {
   const [busyDriver, setBusyDriver] = useState(null);
   const [adding, setAdding] = useState(false);
   const [newDriver, setNewDriver] = useState(EMPTY_DRIVER);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState(EMPTY_DRIVER);
 
   const loadCompany = () =>
     api
@@ -130,6 +132,33 @@ export default function CompanyAdmin({ me }) {
       await api.createCompanyDriver(companyId, newDriver);
       setNewDriver(EMPTY_DRIVER);
       setAdding(false);
+      await loadDrivers();
+    } catch (err) {
+      setDriverMsg(err.message);
+    } finally {
+      setBusyDriver(null);
+    }
+  };
+
+  const startEditDriver = (d) => {
+    setEditingId(d.id);
+    setEditForm({
+      firstName: d.firstName || "",
+      lastName: d.lastName || "",
+      phone: d.phone || "",
+      vehicleType: d.vehicleType || "",
+      vehiclePlate: d.vehiclePlate || "",
+    });
+    setDriverMsg("");
+  };
+
+  const saveEditDriver = async (e) => {
+    e.preventDefault();
+    setBusyDriver(editingId);
+    setDriverMsg("");
+    try {
+      await api.updateDriver(editingId, editForm);
+      setEditingId(null);
       await loadDrivers();
     } catch (err) {
       setDriverMsg(err.message);
@@ -306,35 +335,94 @@ export default function CompanyAdmin({ me }) {
                 </tr>
               </thead>
               <tbody>
-                {drivers.map((d) => (
-                  <tr key={d.id}>
-                    <td>{d.firstName} {d.lastName}</td>
-                    <td>{d.phone || "—"}</td>
-                    <td>{d.vehicleType || "—"} {d.vehiclePlate ? `(${d.vehiclePlate})` : ""}</td>
-                    <td className="muted">{d.hasLogin ? "yes" : "no"}</td>
-                    <td>
-                      <span style={{ color: d.backgroundCheckStatus === "approved" ? "green" : "#e8a33d", fontWeight: 600 }}>
-                        {d.backgroundCheckStatus}
-                      </span>
-                    </td>
-                    <td>
-                      <select
-                        value={d.status}
-                        disabled={busyDriver === d.id}
-                        onChange={(e) => changeDriverStatus(d.id, e.target.value)}
-                        style={{ padding: "6px", borderRadius: "6px", border: "1px solid #ddd" }}
-                      >
-                        <option value="active">active</option>
-                        <option value="inactive">inactive</option>
-                      </select>
-                    </td>
-                    <td>
-                      <button className="button danger sm" disabled={busyDriver === d.id} onClick={() => removeDriver(d.id)}>
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {drivers.map((d) =>
+                  editingId === d.id ? (
+                    <tr key={d.id}>
+                      <td colSpan={7}>
+                        <form
+                          onSubmit={saveEditDriver}
+                          style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", padding: "8px 0" }}
+                        >
+                          <input
+                            className="input"
+                            style={{ width: "120px" }}
+                            placeholder="First name"
+                            value={editForm.firstName}
+                            onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
+                            required
+                          />
+                          <input
+                            className="input"
+                            style={{ width: "120px" }}
+                            placeholder="Last name"
+                            value={editForm.lastName}
+                            onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+                            required
+                          />
+                          <input
+                            className="input"
+                            style={{ width: "140px" }}
+                            type="tel"
+                            placeholder="Phone"
+                            value={editForm.phone}
+                            onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                          />
+                          <input
+                            className="input"
+                            style={{ width: "140px" }}
+                            placeholder="Vehicle type"
+                            value={editForm.vehicleType}
+                            onChange={(e) => setEditForm({ ...editForm, vehicleType: e.target.value })}
+                          />
+                          <input
+                            className="input"
+                            style={{ width: "100px" }}
+                            placeholder="Plate"
+                            value={editForm.vehiclePlate}
+                            onChange={(e) => setEditForm({ ...editForm, vehiclePlate: e.target.value })}
+                          />
+                          <button className="button sm" type="submit" disabled={busyDriver === d.id}>
+                            {busyDriver === d.id ? "Saving…" : "Save"}
+                          </button>
+                          <button type="button" className="button secondary sm" onClick={() => setEditingId(null)}>
+                            Cancel
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr key={d.id}>
+                      <td>{d.firstName} {d.lastName}</td>
+                      <td>{d.phone || "—"}</td>
+                      <td>{d.vehicleType || "—"} {d.vehiclePlate ? `(${d.vehiclePlate})` : ""}</td>
+                      <td className="muted">{d.hasLogin ? "yes" : "no"}</td>
+                      <td>
+                        <span style={{ color: d.backgroundCheckStatus === "approved" ? "green" : "#e8a33d", fontWeight: 600 }}>
+                          {d.backgroundCheckStatus}
+                        </span>
+                      </td>
+                      <td>
+                        <select
+                          value={d.status}
+                          disabled={busyDriver === d.id}
+                          onChange={(e) => changeDriverStatus(d.id, e.target.value)}
+                          style={{ padding: "6px", borderRadius: "6px", border: "1px solid #ddd" }}
+                        >
+                          <option value="active">active</option>
+                          <option value="inactive">inactive</option>
+                        </select>
+                      </td>
+                      <td>
+                        <div className="row-actions">
+                          <button className="button secondary sm" onClick={() => startEditDriver(d)}>Edit</button>
+                          <button className="button danger sm" disabled={busyDriver === d.id} onClick={() => removeDriver(d.id)}>
+                            Remove
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           </div>

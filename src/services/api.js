@@ -291,6 +291,11 @@ export const api = {
     });
     if (!res.ok) throw await parseError(res);
   },
+  getAuditLog: async () => {
+    const res = await fetch(`${API_BASE_URL}/support/audit-log`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
 
   // Staff (admin)
   getUsers: async () => {

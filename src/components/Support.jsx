@@ -252,6 +252,56 @@ function DriversPanel() {
   );
 }
 
+const ACTION_LABELS = {
+  impersonate_facility: "Logged in as facility admin",
+  exit_impersonation: "Exited impersonation",
+  vet_driver: "Vetted driver",
+  vet_company: "Vetted company",
+};
+
+function AuditLogPanel() {
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    api
+      .getAuditLog()
+      .then(setEntries)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <p className="muted">Loading…</p>;
+  if (error) return <p style={{ color: "#d9453d" }}>{error}</p>;
+  if (entries.length === 0) return <p className="muted">No super-admin actions logged yet.</p>;
+
+  return (
+    <div style={{ overflowX: "auto" }}>
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Actor</th>
+            <th>Action</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map((e) => (
+            <tr key={e.id}>
+              <td className="muted">{new Date(e.createdAt).toLocaleString()}</td>
+              <td>{e.actorEmail}</td>
+              <td>{ACTION_LABELS[e.action] || e.action}</td>
+              <td className="muted">{e.detail || "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function Support({ onChange }) {
   const [tab, setTab] = useState("facilities");
 
@@ -262,7 +312,7 @@ export default function Support({ onChange }) {
         Platform staff view — every facility, transportation company, and driver across TrustedTransit.
       </p>
       <div className="row-actions" style={{ marginBottom: "16px" }}>
-        {["facilities", "companies", "drivers"].map((t) => (
+        {["facilities", "companies", "drivers", "audit log"].map((t) => (
           <button
             key={t}
             className={tab === t ? "button sm" : "button secondary sm"}
@@ -275,6 +325,7 @@ export default function Support({ onChange }) {
       {tab === "facilities" && <FacilitiesPanel onChange={onChange} />}
       {tab === "companies" && <CompaniesPanel />}
       {tab === "drivers" && <DriversPanel />}
+      {tab === "audit log" && <AuditLogPanel />}
     </div>
   );
 }

@@ -456,16 +456,6 @@ export const api = {
     return res.json();
   },
 
-  createDriver: async (data) => {
-    const res = await fetch(`${API_BASE_URL}/drivers`, {
-      method: "POST",
-      headers: await authHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw await parseError(res);
-    return res.json();
-  },
-
   updateDriver: async (id, data) => {
     const res = await fetch(`${API_BASE_URL}/drivers/${id}`, {
       method: "PATCH",
@@ -502,6 +492,35 @@ export const api = {
       method: "POST",
       headers: await authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ latitude, longitude }),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+
+  // A facility's own picks from the shared, vetted driver/company pool.
+  getFacilityProviders: async (facilityId) => {
+    const res = await fetch(`${API_BASE_URL}/facilities/${facilityId}/providers`, { headers: await authHeaders() });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  getNearbyProviders: async (facilityId, radiusMiles) => {
+    const res = await fetch(`${API_BASE_URL}/facilities/${facilityId}/providers/nearby?radiusMiles=${radiusMiles}`, {
+      headers: await authHeaders(),
+    });
+    if (!res.ok) throw await parseError(res);
+    return res.json();
+  },
+  addFacilityProvider: async (facilityId, data) => {
+    const res = await fetch(`${API_BASE_URL}/facilities/${facilityId}/providers`, {
+      method: "POST",
+      headers: await authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw await parseError(res);
+  },
+  removeFacilityProvider: async (facilityId, providerLinkId) => {
+    const res = await fetch(`${API_BASE_URL}/facilities/${facilityId}/providers/${providerLinkId}`, {
+      method: "DELETE",
+      headers: await authHeaders(),
     });
     if (!res.ok) throw await parseError(res);
   },

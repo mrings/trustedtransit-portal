@@ -371,7 +371,7 @@ function App() {
         {activeTab === "dashboard" && <Dashboard />}
         {activeTab === "rides" && facilityId && <Rides />}
         {activeTab === "residents" && facilityId && <ResidentList />}
-        {activeTab === "drivers" && <DriverTracking isAdmin={isAdmin} />}
+        {activeTab === "drivers" && facilityId && <DriverTracking isAdmin={isAdmin} facilityId={facilityId} />}
         {activeTab === "admin" && isAdmin && <Admin me={me} onChange={loadMe} />}
         {activeTab === "subscription" && isAdmin && <Subscription />}
         {activeTab === "support" && isSuperAdmin && <Support onChange={loadMe} />}

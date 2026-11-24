@@ -35,6 +35,21 @@ function App() {
   const [creatingCompany, setCreatingCompany] = useState(false);
   const [exitingSupport, setExitingSupport] = useState(false);
 
+  // Captured from the sign-in page's "I'm a Driver" / "Facility or Transportation Company"
+  // buttons (stashed in sessionStorage since loginWithRedirect does a full-page navigation,
+  // losing React state). Read once on mount and consumed immediately — it only needs to
+  // survive that one redirect round-trip, not linger across the session.
+  const [signupIntent] = useState(() => {
+    const v = sessionStorage.getItem("tt_signup_intent");
+    if (v) sessionStorage.removeItem("tt_signup_intent");
+    return v;
+  });
+
+  const startLogin = (intent) => {
+    sessionStorage.setItem("tt_signup_intent", intent);
+    loginWithRedirect();
+  };
+
   // Give the API client a way to fetch the current access token.
   useEffect(() => {
     setTokenProvider(isAuthenticated ? getAccessTokenSilently : null);
@@ -139,10 +154,15 @@ function App() {
         <main className="content">
           <div className="card">
             <h2>Sign in</h2>
-            <p>Sign in to manage your facility, or as an independent driver.</p>
-            <button className="button" onClick={() => loginWithRedirect()}>
-              Log In
-            </button>
+            <p>Are you signing in as a driver, or on behalf of a facility or transportation company?</p>
+            <div className="row-actions">
+              <button className="button" onClick={() => startLogin("driver")}>
+                I'm a Driver
+              </button>
+              <button className="button secondary" onClick={() => startLogin("facility")}>
+                Facility / Transportation Company
+              </button>
+            </div>
           </div>
         </main>
       </div>
@@ -312,58 +332,73 @@ function App() {
             <p>
               Your account (<strong>{user?.email}</strong>) isn't linked to a facility yet.
             </p>
-            {facilities.length > 0 ? (
-              <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                <select
-                  value={linkChoice}
-                  onChange={(e) => setLinkChoice(e.target.value)}
-                  style={{ padding: "8px", borderRadius: "6px", border: "1px solid #ddd" }}
-                >
-                  <option value="">Select a facility…</option>
-                  {facilities.map((f) => (
-                    <option key={f.id} value={f.id}>{f.name}</option>
-                  ))}
-                </select>
-                <button className="button" onClick={handleLink} disabled={!linkChoice || linking}>
-                  {linking ? "Linking…" : "Link my account"}
-                </button>
-              </div>
-            ) : (
-              <p>No facilities exist yet — an administrator needs to create one.</p>
-            )}
-            <p style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #eee" }}>
-              Not facility staff? Drivers are independent — not part of any facility — and
-              manage their own rides and location from a separate dashboard.
-            </p>
-            <button className="button secondary" onClick={handleBecomeDriver} disabled={becomingDriver}>
-              {becomingDriver ? "Setting up…" : "I'm an independent driver"}
-            </button>
 
-            <p style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #eee" }}>
-              Run a transportation company? Register it to manage your own roster of drivers —
-              facilities can then book any of your drivers, same as independent ones.
-            </p>
-            {!registeringCompany ? (
-              <button className="button secondary" onClick={() => setRegisteringCompany(true)}>
-                Register my transportation company
-              </button>
-            ) : (
-              <form onSubmit={handleCreateCompany} style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                <input
-                  type="text"
-                  placeholder="Company name"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  style={{ padding: "8px", borderRadius: "6px", border: "1px solid #ddd" }}
-                  autoFocus
-                />
-                <button className="button" type="submit" disabled={!companyName.trim() || creatingCompany}>
-                  {creatingCompany ? "Creating…" : "Create company"}
+            {signupIntent !== "driver" && (
+              <>
+                {facilities.length > 0 ? (
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                    <select
+                      value={linkChoice}
+                      onChange={(e) => setLinkChoice(e.target.value)}
+                      style={{ padding: "8px", borderRadius: "6px", border: "1px solid #ddd" }}
+                    >
+                      <option value="">Select a facility…</option>
+                      {facilities.map((f) => (
+                        <option key={f.id} value={f.id}>{f.name}</option>
+                      ))}
+                    </select>
+                    <button className="button" onClick={handleLink} disabled={!linkChoice || linking}>
+                      {linking ? "Linking…" : "Link my account"}
+                    </button>
+                  </div>
+                ) : (
+                  <p>No facilities exist yet — an administrator needs to create one.</p>
+                )}
+              </>
+            )}
+
+            {signupIntent !== "facility" && (
+              <>
+                <p style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #eee" }}>
+                  {signupIntent === "driver"
+                    ? "Drivers are independent — not part of any facility — and manage their own rides and location from a separate dashboard."
+                    : "Not facility staff? Drivers are independent — not part of any facility — and manage their own rides and location from a separate dashboard."}
+                </p>
+                <button className="button secondary" onClick={handleBecomeDriver} disabled={becomingDriver}>
+                  {becomingDriver ? "Setting up…" : "I'm an independent driver"}
                 </button>
-                <button type="button" className="button secondary" onClick={() => setRegisteringCompany(false)}>
-                  Cancel
-                </button>
-              </form>
+              </>
+            )}
+
+            {signupIntent !== "driver" && (
+              <>
+                <p style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #eee" }}>
+                  Run a transportation company? Register it to manage your own roster of drivers —
+                  facilities can then book any of your drivers, same as independent ones.
+                </p>
+                {!registeringCompany ? (
+                  <button className="button secondary" onClick={() => setRegisteringCompany(true)}>
+                    Register my transportation company
+                  </button>
+                ) : (
+                  <form onSubmit={handleCreateCompany} style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                    <input
+                      type="text"
+                      placeholder="Company name"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      style={{ padding: "8px", borderRadius: "6px", border: "1px solid #ddd" }}
+                      autoFocus
+                    />
+                    <button className="button" type="submit" disabled={!companyName.trim() || creatingCompany}>
+                      {creatingCompany ? "Creating…" : "Create company"}
+                    </button>
+                    <button type="button" className="button secondary" onClick={() => setRegisteringCompany(false)}>
+                      Cancel
+                    </button>
+                  </form>
+                )}
+              </>
             )}
           </div>
         )}

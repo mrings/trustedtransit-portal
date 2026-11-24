@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { api } from "../services/api";
 import DriverMap from "./DriverMap";
+import { IconPlus } from "./Icons";
 
-const STATUS_COLOR = { pending: "#e8a33d", approved: "green", active: "green", rejected: "#d9453d" };
+const STATUS_BADGE = { pending: "badge-warning", approved: "badge-success", active: "badge-success", rejected: "badge-danger" };
 
 function NearbySearch({ facilityId, onAdded }) {
   const [radius, setRadius] = useState(25);
@@ -43,8 +44,8 @@ function NearbySearch({ facilityId, onAdded }) {
   };
 
   return (
-    <div style={{ padding: "16px", background: "#f9f9f9", borderRadius: "8px", marginBottom: "16px" }}>
-      <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "12px", flexWrap: "wrap" }}>
+    <div className="panel">
+      <div className="row-actions" style={{ marginBottom: "12px" }}>
         <label>Within</label>
         <input
           type="number"
@@ -60,12 +61,14 @@ function NearbySearch({ facilityId, onAdded }) {
           {searching ? "Searching…" : "Search"}
         </button>
       </div>
-      {error && <p style={{ color: "#d9453d", marginBottom: "12px" }}>{error}</p>}
+      {error && <div className="alert alert-danger">{error}</div>}
       {results && (
         <>
-          <h4 style={{ marginBottom: "6px" }}>Independent drivers</h4>
+          <h4 style={{ marginBottom: "6px", fontSize: "13px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+            Independent drivers
+          </h4>
           {results.drivers.length === 0 ? (
-            <p className="muted" style={{ marginBottom: "12px", fontSize: "13px" }}>
+            <p className="section-note">
               None in range. (Only drivers who've shared a location at least once can be placed.)
             </p>
           ) : (
@@ -78,7 +81,7 @@ function NearbySearch({ facilityId, onAdded }) {
                     <td className="muted">{d.distanceMiles} mi</td>
                     <td>
                       <button className="button sm" disabled={busyId === d.id} onClick={() => add({ driverId: d.id }, d.id)}>
-                        + Add
+                        <IconPlus /> Add
                       </button>
                     </td>
                   </tr>
@@ -87,9 +90,11 @@ function NearbySearch({ facilityId, onAdded }) {
             </table>
           )}
 
-          <h4 style={{ marginBottom: "6px" }}>Transport companies</h4>
+          <h4 style={{ marginBottom: "6px", fontSize: "13px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+            Transport companies
+          </h4>
           {results.companies.length === 0 ? (
-            <p className="muted" style={{ fontSize: "13px" }}>None in range.</p>
+            <p className="section-note" style={{ marginBottom: 0 }}>None in range.</p>
           ) : (
             <table className="data-table">
               <tbody>
@@ -100,7 +105,7 @@ function NearbySearch({ facilityId, onAdded }) {
                     <td className="muted">{c.distanceMiles} mi</td>
                     <td>
                       <button className="button sm" disabled={busyId === c.id} onClick={() => add({ transportCompanyId: c.id }, c.id)}>
-                        + Add
+                        <IconPlus /> Add
                       </button>
                     </td>
                   </tr>
@@ -116,18 +121,18 @@ function NearbySearch({ facilityId, onAdded }) {
 
 function IndependentDriverCard({ d, isAdmin, busyId, onRemove }) {
   return (
-    <div style={{ background: "#f9f9f9", padding: "16px", borderRadius: "8px", border: "1px solid #ddd" }}>
-      <h3 style={{ marginBottom: "4px" }}>{d.firstName} {d.lastName}</h3>
+    <div className="panel" style={{ marginBottom: 0 }}>
+      <h3>{d.firstName} {d.lastName}</h3>
       <p className="muted" style={{ marginBottom: "10px" }}>Independent driver</p>
       <p><strong>Phone:</strong> {d.phone || "—"}</p>
       <p><strong>Vehicle:</strong> {d.vehicleType || "—"} {d.vehiclePlate ? `(${d.vehiclePlate})` : ""}</p>
-      <p>
+      <p style={{ margin: "8px 0" }}>
         <strong>Status:</strong>{" "}
-        <span style={{ color: d.status === "active" ? "green" : "#d9453d", fontWeight: 600 }}>{d.status}</span>
+        <span className={`badge ${d.status === "active" ? "badge-success" : "badge-danger"}`}>{d.status}</span>
       </p>
       <p>
         <strong>Vetting:</strong>{" "}
-        <span style={{ color: STATUS_COLOR[d.backgroundCheckStatus] || "#333", fontWeight: 600 }}>
+        <span className={`badge ${STATUS_BADGE[d.backgroundCheckStatus] || "badge-neutral"}`}>
           {d.backgroundCheckStatus}
         </span>
       </p>
@@ -144,10 +149,10 @@ function IndependentDriverCard({ d, isAdmin, busyId, onRemove }) {
 
 function CompanyCard({ c, isAdmin, busyId, onRemove }) {
   return (
-    <div style={{ background: "#f9f9f9", padding: "16px", borderRadius: "8px", border: "1px solid #ddd" }}>
+    <div className="panel" style={{ marginBottom: 0 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-          <h3 style={{ marginBottom: "4px" }}>{c.name}</h3>
+          <h3>{c.name}</h3>
           <p className="muted" style={{ marginBottom: "10px" }}>
             Transport company · {c.drivers.length} driver{c.drivers.length === 1 ? "" : "s"}
           </p>
@@ -163,10 +168,10 @@ function CompanyCard({ c, isAdmin, busyId, onRemove }) {
       ) : (
         <ul style={{ margin: 0, paddingLeft: "18px" }}>
           {c.drivers.map((d) => (
-            <li key={d.driverId}>
+            <li key={d.driverId} style={{ marginBottom: "4px" }}>
               {d.firstName} {d.lastName}{" "}
-              <span style={{ color: STATUS_COLOR[d.backgroundCheckStatus] || "#333", fontWeight: 600 }}>
-                ({d.backgroundCheckStatus})
+              <span className={`badge ${STATUS_BADGE[d.backgroundCheckStatus] || "badge-neutral"}`}>
+                {d.backgroundCheckStatus}
               </span>
             </li>
           ))}
@@ -226,14 +231,14 @@ export default function DriverTracking({ isAdmin, facilityId }) {
       </div>
       <div className="card">
         <h2>Drivers</h2>
-        <p className="muted" style={{ fontSize: "13px", marginBottom: "12px" }}>
+        <p className="section-note">
           Your facility's own picks from TrustedTransit's vetted driver/company pool — not every provider on the platform.
         </p>
-        {error && <p style={{ color: "#d9453d", marginBottom: "12px" }}>{error}</p>}
+        {error && <div className="alert alert-danger">{error}</div>}
 
         {isAdmin && !adding && (
           <button className="button" style={{ marginBottom: "16px" }} onClick={() => setAdding(true)}>
-            Add Driver
+            <IconPlus /> Add Driver
           </button>
         )}
         {isAdmin && adding && (
@@ -246,7 +251,7 @@ export default function DriverTracking({ isAdmin, facilityId }) {
         )}
 
         {loading ? (
-          <p>Loading drivers…</p>
+          <p className="muted">Loading drivers…</p>
         ) : isEmpty ? (
           <p className="muted">No providers added yet.</p>
         ) : (

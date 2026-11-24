@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import { api } from "../services/api";
+import { IconRoute, IconCalendar, IconCar, IconUsers, IconCheckCircle } from "./Icons";
 
-function Stat({ value, label }) {
+function Stat({ icon: Icon, value, label }) {
   return (
-    <div style={{ padding: "20px", background: "#f0f0f0", borderRadius: "8px", textAlign: "center" }}>
-      <div style={{ fontSize: "32px", fontWeight: "bold", color: "#667eea" }}>{value}</div>
-      <div style={{ fontSize: "14px", color: "#666", marginTop: "8px" }}>{label}</div>
+    <div className="stat-card">
+      <div className="stat-icon">
+        <Icon />
+      </div>
+      <div className="stat-value">{value}</div>
+      <div className="stat-label">{label}</div>
     </div>
   );
 }
@@ -23,24 +27,17 @@ export default function Dashboard() {
 
   return (
     <div className="card">
-      <h2>Dashboard</h2>
-      {error && <p style={{ color: "#d9453d" }}>{error}</p>}
+      <h2>Overview</h2>
+      {error && <div className="alert alert-danger">{error}</div>}
       {!data && !error ? (
-        <p>Loading…</p>
+        <p className="muted">Loading…</p>
       ) : (
-        <div
-          style={{
-            marginTop: "12px",
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-            gap: "16px",
-          }}
-        >
-          <Stat value={data?.upcomingRides ?? 0} label="Upcoming Rides" />
-          <Stat value={data?.ridesToday ?? 0} label="Rides Today" />
-          <Stat value={data?.activeDrivers ?? 0} label="Active Drivers" />
-          <Stat value={data?.residents ?? 0} label="Residents" />
-          <Stat value={data?.completedThisMonth ?? 0} label="Completed This Month" />
+        <div className="stat-grid">
+          <Stat icon={IconRoute} value={data?.upcomingRides ?? 0} label="Upcoming Rides" />
+          <Stat icon={IconCalendar} value={data?.ridesToday ?? 0} label="Rides Today" />
+          <Stat icon={IconCar} value={data?.activeDrivers ?? 0} label="Active Drivers" />
+          <Stat icon={IconUsers} value={data?.residents ?? 0} label="Residents" />
+          <Stat icon={IconCheckCircle} value={data?.completedThisMonth ?? 0} label="Completed This Month" />
         </div>
       )}
     </div>

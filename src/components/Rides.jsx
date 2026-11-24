@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback, Fragment } from "react";
 import { api } from "../services/api";
 import RecurringRides from "./RecurringRides";
+import { IconPlus } from "./Icons";
 
 const STATUSES = ["scheduled", "assigned", "in_progress", "completed", "cancelled"];
-const STATUS_COLOR = {
-  scheduled: "#666",
-  assigned: "#2f6fed",
-  in_progress: "#e8a33d",
-  completed: "green",
-  cancelled: "#d9453d",
+const STATUS_BADGE = {
+  scheduled: "badge-neutral",
+  assigned: "badge-info",
+  in_progress: "badge-warning",
+  completed: "badge-success",
+  cancelled: "badge-danger",
 };
 
 const EMPTY = {
@@ -35,7 +36,7 @@ function ScheduleForm({ residents, onCreate, onCancel }) {
           rideType: "one-time",
         });
       }}
-      style={{ padding: "16px", background: "#f9f9f9", borderRadius: "8px", marginBottom: "16px" }}
+      className="panel"
     >
       <div className="form-grid">
         <div className="field">
@@ -192,12 +193,12 @@ export default function Rides() {
     <>
     <div className="card">
       <h2>Rides</h2>
-      {error && <p style={{ color: "#d9453d", marginBottom: "12px" }}>{error}</p>}
-      {linkMsg && <p style={{ color: "#2f6fed", marginBottom: "12px" }}>{linkMsg}</p>}
+      {error && <div className="alert alert-danger">{error}</div>}
+      {linkMsg && <div className="alert alert-info">{linkMsg}</div>}
 
       {!scheduling && (
         <button className="button" style={{ marginBottom: "16px" }} onClick={() => setScheduling(true)}>
-          Schedule a Ride
+          <IconPlus /> Schedule a Ride
         </button>
       )}
       {scheduling && (
@@ -205,7 +206,7 @@ export default function Rides() {
       )}
 
       {loading ? (
-        <p>Loading rides…</p>
+        <p className="muted">Loading rides…</p>
       ) : rides.length === 0 ? (
         <p className="muted">No rides scheduled.</p>
       ) : (
@@ -230,7 +231,7 @@ export default function Rides() {
                   <td>
                     {r.residentName}
                     {r.recurring && (
-                      <span className="mono" style={{ display: "block", color: "#2f6fed" }}>↻ recurring</span>
+                      <span className="mono" style={{ display: "block", color: "var(--color-primary-700)" }}>↻ recurring</span>
                     )}
                   </td>
                   <td>
@@ -241,6 +242,8 @@ export default function Rides() {
                   <td>{fmt(r.scheduledPickupTime)}</td>
                   <td>
                     <select
+                      className="input"
+                      style={{ width: "auto" }}
                       value={r.driverId || ""}
                       disabled={busy === r.id}
                       onChange={(e) =>
@@ -248,7 +251,6 @@ export default function Rides() {
                           ? patch(r.id, { driverId: e.target.value })
                           : patch(r.id, { unassignDriver: true })
                       }
-                      style={{ padding: "6px", borderRadius: "6px", border: "1px solid #ddd" }}
                     >
                       <option value="">— unassigned —</option>
                       {activeDrivers.map((d) => (
@@ -263,21 +265,19 @@ export default function Rides() {
                   </td>
                   <td>
                     <select
+                      className="input"
+                      style={{ width: "auto", fontWeight: 600 }}
                       value={r.status}
                       disabled={busy === r.id}
                       onChange={(e) => patch(r.id, { status: e.target.value })}
-                      style={{
-                        padding: "6px",
-                        borderRadius: "6px",
-                        border: "1px solid #ddd",
-                        fontWeight: 600,
-                        color: STATUS_COLOR[r.status] || "#333",
-                      }}
                     >
                       {STATUSES.map((s) => (
                         <option key={s} value={s}>{s}</option>
                       ))}
                     </select>
+                    <div style={{ marginTop: "6px" }}>
+                      <span className={`badge ${STATUS_BADGE[r.status] || "badge-neutral"}`}>{r.status}</span>
+                    </div>
                   </td>
                   <td>
                     <button
@@ -305,7 +305,7 @@ export default function Rides() {
                 </tr>
                 {expandedId === r.id && (
                   <tr>
-                    <td colSpan={8} style={{ background: "#fafafa" }}>
+                    <td colSpan={8} style={{ background: "var(--gray-50)" }}>
                       {!notifs[r.id] ? (
                         <span className="muted">Loading…</span>
                       ) : notifs[r.id].length === 0 ? (
@@ -313,7 +313,7 @@ export default function Rides() {
                       ) : (
                         <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "13px" }}>
                           {notifs[r.id].map((n, i) => (
-                            <li key={i} style={{ color: n.success ? "#333" : "#d9453d" }}>
+                            <li key={i} className={n.success ? "" : "text-danger"}>
                               {new Date(n.createdAt).toLocaleString()} · <strong>{n.event}</strong> · {n.channel} → {n.recipient}
                               {n.success ? " ✓" : ` ✗ ${n.error}`}
                             </li>

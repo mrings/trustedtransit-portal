@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../services/api";
 import DriverMap from "./DriverMap";
+import { IconPlus } from "./Icons";
 
 const FIELDS = [
   ["name", "Company name"],
@@ -12,13 +13,6 @@ const FIELDS = [
 ];
 
 const EMPTY_DRIVER = { firstName: "", lastName: "", phone: "", vehicleType: "", vehiclePlate: "", email: "" };
-
-const inputStyle = {
-  width: "100%",
-  padding: "10px",
-  borderRadius: "6px",
-  border: "1px solid #ddd",
-};
 
 export default function CompanyAdmin({ me }) {
   const companyId = me.transportCompanyId;
@@ -205,7 +199,7 @@ export default function CompanyAdmin({ me }) {
   };
 
   if (!form) {
-    return <div className="card"><p>{companyMsg || "Loading…"}</p></div>;
+    return <div className="card"><p className="muted">{companyMsg || "Loading…"}</p></div>;
   }
 
   return (
@@ -213,17 +207,11 @@ export default function CompanyAdmin({ me }) {
       <div className="card">
         <h2>Company settings</h2>
         {companyStatus && companyStatus !== "active" && (
-          <p
-            style={{
-              marginBottom: "12px",
-              color: companyStatus === "rejected" ? "#d9453d" : "#e8a33d",
-              fontWeight: 600,
-            }}
-          >
+          <div className={`alert ${companyStatus === "rejected" ? "alert-danger" : "alert-warning"}`}>
             {companyStatus === "rejected"
               ? "This company was not approved by TrustedTransit."
               : "Pending TrustedTransit review — your drivers can still be added and vetted individually in the meantime."}
-          </p>
+          </div>
         )}
         {!editing ? (
           <div>
@@ -238,22 +226,24 @@ export default function CompanyAdmin({ me }) {
               Edit
             </button>
             {companyMsg && (
-              <p style={{ color: companyMsg === "Saved." ? "green" : "#d33", marginTop: "10px" }}>{companyMsg}</p>
+              <p className={companyMsg === "Saved." ? "text-success" : "text-danger"} style={{ marginTop: "10px" }}>{companyMsg}</p>
             )}
           </div>
         ) : (
           <form onSubmit={saveCompany}>
-            {FIELDS.map(([key, label]) => (
-              <div key={key} style={{ marginBottom: "16px" }}>
-                <label style={{ display: "block", marginBottom: "8px" }}>{label}</label>
-                <input
-                  type="text"
-                  value={form[key]}
-                  onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                  style={inputStyle}
-                />
-              </div>
-            ))}
+            <div className="form-grid">
+              {FIELDS.map(([key, label]) => (
+                <div className="field" key={key}>
+                  <label>{label}</label>
+                  <input
+                    className="input"
+                    type="text"
+                    value={form[key]}
+                    onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                  />
+                </div>
+              ))}
+            </div>
             <div className="row-actions">
               <button className="button" type="submit" disabled={saving}>
                 {saving ? "Saving…" : "Save changes"}
@@ -263,7 +253,7 @@ export default function CompanyAdmin({ me }) {
               </button>
             </div>
             {companyMsg && (
-              <p style={{ color: companyMsg === "Saved." ? "green" : "#d33", marginTop: "10px" }}>{companyMsg}</p>
+              <p className={companyMsg === "Saved." ? "text-success" : "text-danger"} style={{ marginTop: "10px" }}>{companyMsg}</p>
             )}
           </form>
         )}
@@ -271,14 +261,14 @@ export default function CompanyAdmin({ me }) {
 
       <div className="card">
         <h2>Driver email domains</h2>
-        <p className="muted" style={{ fontSize: "13px" }}>
+        <p className="section-note">
           Anyone who signs in with a verified email at one of these domains automatically joins
           your roster as a driver. Personal providers (gmail.com, etc.) can't be used — and to add
           a domain, you must be signed in with a verified email at that exact domain, which proves
           your company owns it.
         </p>
         {domains.length > 0 && (
-          <div style={{ overflowX: "auto", marginTop: "12px" }}>
+          <div style={{ overflowX: "auto", marginBottom: "12px" }}>
             <table className="data-table">
               <thead>
                 <tr>
@@ -303,7 +293,7 @@ export default function CompanyAdmin({ me }) {
             </table>
           </div>
         )}
-        <form onSubmit={addDomain} className="row-actions" style={{ marginTop: "12px" }}>
+        <form onSubmit={addDomain} className="row-actions">
           <input
             className="input"
             style={{ maxWidth: "280px" }}
@@ -315,7 +305,7 @@ export default function CompanyAdmin({ me }) {
             {domainBusy ? "Adding…" : "Add domain"}
           </button>
         </form>
-        {domainMsg && <p style={{ color: "#d9453d", marginTop: "8px" }}>{domainMsg}</p>}
+        {domainMsg && <p className="text-danger" style={{ marginTop: "8px" }}>{domainMsg}</p>}
       </div>
 
       <div className="card">
@@ -325,18 +315,18 @@ export default function CompanyAdmin({ me }) {
 
       <div className="card">
         <h2>Driver roster</h2>
-        <p className="muted" style={{ fontSize: "13px" }}>
+        <p className="section-note">
           Facilities can book any of these drivers, same as independent ones, once TrustedTransit
           has approved their vetting — that's a platform review, not something you can set here.
           Give a placeholder driver their email and the first time they sign into the portal with
           it, their account links to this exact roster row — no claimed domain needed.
         </p>
-        {driverMsg && <p style={{ color: "#d9453d", marginTop: "8px" }}>{driverMsg}</p>}
+        {driverMsg && <div className="alert alert-danger">{driverMsg}</div>}
 
         {drivers.length === 0 ? (
-          <p className="muted" style={{ marginTop: "12px" }}>No drivers on your roster yet.</p>
+          <p className="muted">No drivers on your roster yet.</p>
         ) : (
-          <div style={{ overflowX: "auto", marginTop: "12px" }}>
+          <div style={{ overflowX: "auto" }}>
             <table className="data-table">
               <thead>
                 <tr>
@@ -357,7 +347,8 @@ export default function CompanyAdmin({ me }) {
                       <td colSpan={8}>
                         <form
                           onSubmit={saveEditDriver}
-                          style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", padding: "8px 0" }}
+                          className="row-actions"
+                          style={{ padding: "8px 0" }}
                         >
                           <input
                             className="input"
@@ -422,16 +413,17 @@ export default function CompanyAdmin({ me }) {
                       <td className="muted">{d.hasLogin ? "yes" : "no"}</td>
                       <td className="muted">{d.hasLogin ? "—" : (d.email || "none set")}</td>
                       <td>
-                        <span style={{ color: d.backgroundCheckStatus === "approved" ? "green" : "#e8a33d", fontWeight: 600 }}>
+                        <span className={`badge ${d.backgroundCheckStatus === "approved" ? "badge-success" : "badge-warning"}`}>
                           {d.backgroundCheckStatus}
                         </span>
                       </td>
                       <td>
                         <select
+                          className="input"
+                          style={{ width: "auto" }}
                           value={d.status}
                           disabled={busyDriver === d.id}
                           onChange={(e) => changeDriverStatus(d.id, e.target.value)}
-                          style={{ padding: "6px", borderRadius: "6px", border: "1px solid #ddd" }}
                         >
                           <option value="active">active</option>
                           <option value="inactive">inactive</option>
@@ -455,10 +447,10 @@ export default function CompanyAdmin({ me }) {
 
         {!adding ? (
           <button className="button sm" style={{ marginTop: "16px" }} onClick={() => setAdding(true)}>
-            Add Driver
+            <IconPlus /> Add Driver
           </button>
         ) : (
-          <form onSubmit={addDriver} style={{ marginTop: "16px", padding: "16px", background: "#f9f9f9", borderRadius: "8px" }}>
+          <form onSubmit={addDriver} className="panel" style={{ marginTop: "16px", marginBottom: 0 }}>
             <div className="form-grid">
               <div className="field">
                 <label>First name</label>

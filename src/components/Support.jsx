@@ -37,7 +37,7 @@ function FacilitiesPanel({ onChange }) {
 
   return (
     <>
-      {error && <p style={{ color: "#d9453d", marginBottom: "12px" }}>{error}</p>}
+      {error && <div className="alert alert-danger">{error}</div>}
       <div style={{ overflowX: "auto" }}>
         <table className="data-table">
           <thead>
@@ -58,7 +58,7 @@ function FacilitiesPanel({ onChange }) {
                 <td className="muted">{[f.city, f.state].filter(Boolean).join(", ") || "—"}</td>
                 <td className="mono">{f.subscriptionTier}</td>
                 <td>
-                  <span style={{ fontWeight: 600, color: f.subscriptionStatus === "active" ? "green" : "#d9453d" }}>
+                  <span className={`badge ${f.subscriptionStatus === "active" ? "badge-success" : "badge-danger"}`}>
                     {f.subscriptionStatus}
                   </span>
                 </td>
@@ -80,7 +80,7 @@ function FacilitiesPanel({ onChange }) {
 
 const COMPANY_STATUSES = ["pending", "active", "rejected"];
 const DRIVER_STATUSES = ["pending", "approved", "rejected"];
-const STATUS_COLOR = { pending: "#e8a33d", active: "green", approved: "green", rejected: "#d9453d" };
+const STATUS_BADGE = { pending: "badge-warning", active: "badge-success", approved: "badge-success", rejected: "badge-danger" };
 
 function CompaniesPanel() {
   const [companies, setCompanies] = useState([]);
@@ -117,7 +117,7 @@ function CompaniesPanel() {
 
   return (
     <>
-      {error && <p style={{ color: "#d9453d", marginBottom: "12px" }}>{error}</p>}
+      {error && <div className="alert alert-danger">{error}</div>}
       <div style={{ overflowX: "auto" }}>
         <table className="data-table">
           <thead>
@@ -138,14 +138,15 @@ function CompaniesPanel() {
                 <td>{c.domainCount}</td>
                 <td>{c.driverCount}</td>
                 <td>
-                  <span style={{ fontWeight: 600, color: STATUS_COLOR[c.status] || "#333" }}>{c.status}</span>
+                  <span className={`badge ${STATUS_BADGE[c.status] || "badge-neutral"}`}>{c.status}</span>
                 </td>
                 <td>
                   <select
+                    className="input"
+                    style={{ width: "auto" }}
                     value={c.status}
                     disabled={busyId === c.id}
                     onChange={(e) => setStatus(c, e.target.value)}
-                    style={{ padding: "6px", borderRadius: "6px", border: "1px solid #ddd" }}
                   >
                     {COMPANY_STATUSES.map((s) => (
                       <option key={s} value={s}>{s}</option>
@@ -157,7 +158,7 @@ function CompaniesPanel() {
           </tbody>
         </table>
       </div>
-      <p className="muted" style={{ fontSize: "13px", marginTop: "12px" }}>
+      <p className="section-note" style={{ marginTop: "12px", marginBottom: 0 }}>
         Only "active" companies auto-join new drivers who sign in at a claimed email domain.
         Vetting a company doesn't vet its drivers — approve each driver separately below.
       </p>
@@ -200,7 +201,7 @@ function DriversPanel() {
 
   return (
     <>
-      {error && <p style={{ color: "#d9453d", marginBottom: "12px" }}>{error}</p>}
+      {error && <div className="alert alert-danger">{error}</div>}
       <div style={{ overflowX: "auto" }}>
         <table className="data-table">
           <thead>
@@ -223,16 +224,17 @@ function DriversPanel() {
                 <td>{d.vehicleType || "—"} {d.vehiclePlate ? `(${d.vehiclePlate})` : ""}</td>
                 <td className="muted">{d.status}</td>
                 <td>
-                  <span style={{ fontWeight: 600, color: STATUS_COLOR[d.backgroundCheckStatus] || "#333" }}>
+                  <span className={`badge ${STATUS_BADGE[d.backgroundCheckStatus] || "badge-neutral"}`}>
                     {d.backgroundCheckStatus}
                   </span>
                 </td>
                 <td>
                   <select
+                    className="input"
+                    style={{ width: "auto" }}
                     value={d.backgroundCheckStatus}
                     disabled={busyId === d.id}
                     onChange={(e) => setStatus(d, e.target.value)}
-                    style={{ padding: "6px", borderRadius: "6px", border: "1px solid #ddd" }}
                   >
                     {DRIVER_STATUSES.map((s) => (
                       <option key={s} value={s}>{s}</option>
@@ -244,7 +246,7 @@ function DriversPanel() {
           </tbody>
         </table>
       </div>
-      <p className="muted" style={{ fontSize: "13px", marginTop: "12px" }}>
+      <p className="section-note" style={{ marginTop: "12px", marginBottom: 0 }}>
         Only drivers marked "approved" (and roster status "active") can be assigned to rides by
         any facility. New drivers default to "pending" and aren't bookable until vetted here.
       </p>
@@ -252,14 +254,14 @@ function DriversPanel() {
   );
 }
 
-const ACTION_LABELS = {
-  impersonate_facility: "Logged in as facility admin",
-  exit_impersonation: "Exited impersonation",
-  vet_driver: "Vetted driver",
-  vet_company: "Vetted company",
-};
-
 function AuditLogPanel() {
+  const ACTION_LABELS = {
+    impersonate_facility: "Logged in as facility admin",
+    exit_impersonation: "Exited impersonation",
+    vet_driver: "Vetted driver",
+    vet_company: "Vetted company",
+  };
+
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -273,7 +275,7 @@ function AuditLogPanel() {
   }, []);
 
   if (loading) return <p className="muted">Loading…</p>;
-  if (error) return <p style={{ color: "#d9453d" }}>{error}</p>;
+  if (error) return <div className="alert alert-danger">{error}</div>;
   if (entries.length === 0) return <p className="muted">No super-admin actions logged yet.</p>;
 
   return (
@@ -302,17 +304,19 @@ function AuditLogPanel() {
   );
 }
 
+const TABS = ["facilities", "companies", "drivers", "audit log"];
+
 export default function Support({ onChange }) {
   const [tab, setTab] = useState("facilities");
 
   return (
     <div className="card">
       <h2>Support</h2>
-      <p className="muted" style={{ fontSize: "13px", marginBottom: "12px" }}>
+      <p className="section-note">
         Platform staff view — every facility, transportation company, and driver across TrustedTransit.
       </p>
       <div className="row-actions" style={{ marginBottom: "16px" }}>
-        {["facilities", "companies", "drivers", "audit log"].map((t) => (
+        {TABS.map((t) => (
           <button
             key={t}
             className={tab === t ? "button sm" : "button secondary sm"}

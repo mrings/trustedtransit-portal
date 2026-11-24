@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "../services/api";
+import { IconPlus } from "./Icons";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -49,7 +50,7 @@ function SeriesForm({ residents, drivers, initial, onSubmit, onCancel, submitLab
           endDate: data.endDate || null,
         });
       }}
-      style={{ padding: "16px", background: "#f9f9f9", borderRadius: "8px", marginBottom: "16px" }}
+      className="panel"
     >
       <div className="form-grid">
         <div className="field">
@@ -104,7 +105,7 @@ function SeriesForm({ residents, drivers, initial, onSubmit, onCancel, submitLab
       </div>
       <div className="field">
         <label>Days</label>
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+        <div className="row-actions">
           {DAY_LABELS.map((lbl, n) => (
             <button
               type="button"
@@ -217,14 +218,14 @@ export default function RecurringRides({ onChange, allowed = true }) {
 
   if (!allowed) {
     return (
-      <div className="card" style={{ borderLeft: "4px solid #667eea" }}>
+      <div className="card">
         <h2>Recurring Rides</h2>
-        <p className="muted">
+        <div className="alert alert-info" style={{ marginBottom: series.length > 0 ? "12px" : 0 }}>
           Recurring ride schedules (e.g. dialysis every Mon/Wed/Fri) are available on the <strong>Pro</strong> plan.
           Upgrade from the Subscription tab.
-        </p>
+        </div>
         {series.length > 0 && (
-          <p className="muted" style={{ fontSize: "13px" }}>
+          <p className="section-note" style={{ marginBottom: 0 }}>
             You have {series.length} existing recurring schedule{series.length === 1 ? "" : "s"}; they stop generating new
             rides until you upgrade.
           </p>
@@ -236,11 +237,11 @@ export default function RecurringRides({ onChange, allowed = true }) {
   return (
     <div className="card">
       <h2>Recurring Rides</h2>
-      {error && <p style={{ color: "#d9453d", marginBottom: "12px" }}>{error}</p>}
+      {error && <div className="alert alert-danger">{error}</div>}
 
       {!adding && !editingId && (
         <button className="button" style={{ marginBottom: "16px" }} onClick={() => setAdding(true)}>
-          Add Recurring Ride
+          <IconPlus /> Add Recurring Ride
         </button>
       )}
       {adding && (
@@ -256,7 +257,7 @@ export default function RecurringRides({ onChange, allowed = true }) {
       )}
 
       {loading ? (
-        <p>Loading…</p>
+        <p className="muted">Loading…</p>
       ) : series.length === 0 ? (
         <p className="muted">No recurring rides.</p>
       ) : (

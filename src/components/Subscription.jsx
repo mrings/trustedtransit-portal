@@ -9,7 +9,7 @@ const fmtDate = (iso) => {
   return isNaN(d) ? "—" : d.toLocaleDateString([], { dateStyle: "long" });
 };
 
-const STATUS_COLOR = { trial: "#e8a33d", active: "green", canceled: "#d9453d", past_due: "#d9453d" };
+const STATUS_BADGE = { trial: "badge-warning", active: "badge-success", canceled: "badge-danger", past_due: "badge-danger" };
 
 // One-time notice from the Stripe redirect return.
 function returnNotice() {
@@ -69,7 +69,7 @@ export default function Subscription() {
   };
 
   if (!sub) {
-    return <div className="card"><p>{error || "Loading…"}</p></div>;
+    return <div className="card"><p className="muted">{error || "Loading…"}</p></div>;
   }
 
   const {
@@ -85,45 +85,45 @@ export default function Subscription() {
       <div className="card">
         <h2>Subscription</h2>
         {notice && (
-          <div className="card" style={{ borderLeft: "4px solid #667eea", marginBottom: "12px" }}>
+          <div className="alert alert-info">
             {notice} <button className="button secondary sm" onClick={() => setNotice(null)}>Dismiss</button>
           </div>
         )}
-        {error && <p style={{ color: "#d9453d" }}>{error}</p>}
+        {error && <div className="alert alert-danger">{error}</div>}
         {!billingEnabled && (
-          <p className="muted" style={{ fontSize: "13px" }}>
+          <p className="section-note">
             Payments aren't configured on the server yet — plan changes apply locally and nothing is charged.
           </p>
         )}
 
-        <div style={{ padding: "16px", background: "#f9f9f9", borderRadius: "8px" }}>
+        <div className="panel">
           <div style={{ fontSize: "22px", fontWeight: 700 }}>
             {planName}{" "}
-            <span style={{ fontSize: "15px", fontWeight: 400, color: "#666" }}>{money(monthlyPriceCents)}/mo</span>
+            <span style={{ fontSize: "15px", fontWeight: 400, color: "var(--text-muted)" }}>{money(monthlyPriceCents)}/mo</span>
           </div>
           <div style={{ marginTop: "8px" }}>
-            Status: <span style={{ fontWeight: 700, color: STATUS_COLOR[status] || "#333" }}>{status}</span>
+            Status: <span className={`badge ${STATUS_BADGE[status] || "badge-neutral"}`}>{status}</span>
           </div>
           {status === "trial" && (
-            <div style={{ marginTop: "4px", color: trialDaysLeft <= 5 ? "#d9453d" : "#666" }}>
+            <div className={trialDaysLeft <= 5 ? "text-danger" : "muted"} style={{ marginTop: "8px" }}>
               {trialDaysLeft > 0
                 ? `Trial ends in ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} (${fmtDate(trialEndsAt)})`
                 : `Trial ended ${fmtDate(trialEndsAt)}`}
             </div>
           )}
           {isPaid && renewsAt && (
-            <div style={{ marginTop: "4px", color: "#666" }}>
+            <div className="muted" style={{ marginTop: "8px" }}>
               {cancelAtPeriodEnd ? `Cancels on ${fmtDate(renewsAt)}` : `Renews ${fmtDate(renewsAt)}`}
             </div>
           )}
           {status === "past_due" && (
-            <div style={{ marginTop: "4px", color: "#d9453d" }}>Payment failed — update your card in billing settings.</div>
+            <div className="text-danger" style={{ marginTop: "8px" }}>Payment failed — update your card in billing settings.</div>
           )}
-          <div style={{ marginTop: "10px", fontSize: "13px", color: "#666" }}>
+          <div className="section-note" style={{ marginTop: "10px", marginBottom: 0 }}>
             Residents: {residentCount}
             {residentLimit ? ` / ${residentLimit}` : " (unlimited)"}
             {residentLimit && residentCount >= residentLimit && (
-              <span style={{ color: "#d9453d", fontWeight: 600 }}> — limit reached</span>
+              <span className="text-danger" style={{ fontWeight: 600 }}> — limit reached</span>
             )}
             {" · "}Recurring rides: {recurringRidesAllowed ? "included" : "not on this plan"}
           </div>
@@ -161,20 +161,17 @@ export default function Subscription() {
 
       <div className="card">
         <h2>Plans</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px" }}>
+        <div className="plan-grid">
           {plans.map((p) => {
             const current = p.key === tier;
             return (
-              <div
-                key={p.key}
-                style={{ border: current ? "2px solid #667eea" : "1px solid #ddd", borderRadius: "8px", padding: "16px" }}
-              >
-                <div style={{ fontWeight: 700, fontSize: "18px" }}>{p.name}</div>
-                <div style={{ color: "#667eea", fontWeight: 700, margin: "6px 0" }}>
-                  {money(p.monthlyPriceCents)}<span style={{ color: "#666", fontWeight: 400 }}>/mo</span>
+              <div key={p.key} className={`plan-card ${current ? "current" : ""}`}>
+                <div className="plan-name">{p.name}</div>
+                <div className="plan-price">
+                  {money(p.monthlyPriceCents)}<span>/mo</span>
                 </div>
                 <div className="muted" style={{ fontSize: "13px", marginBottom: "10px" }}>{p.description}</div>
-                <ul style={{ paddingLeft: "18px", fontSize: "13px", margin: "0 0 12px" }}>
+                <ul>
                   <li>{p.residentLimit ? `Up to ${p.residentLimit} residents` : "Unlimited residents"}</li>
                   <li>{p.recurringRides ? "Recurring rides" : "One-time rides"}</li>
                   {p.features.filter((f) => !/resident|recurring/i.test(f)).map((f) => (
@@ -182,7 +179,7 @@ export default function Subscription() {
                   ))}
                 </ul>
                 {current ? (
-                  <span style={{ fontWeight: 700, color: "#667eea" }}>Current plan</span>
+                  <span className="text-primary" style={{ fontWeight: 700 }}>Current plan</span>
                 ) : canManage ? (
                   isPaid ? (
                     <button className="button secondary sm" disabled={busy} onClick={() => run(() => api.changePlan(p.key))}>

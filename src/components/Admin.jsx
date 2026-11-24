@@ -12,13 +12,6 @@ const FIELDS = [
 
 const ROLES = ["admin", "user"];
 
-const inputStyle = {
-  width: "100%",
-  padding: "10px",
-  borderRadius: "6px",
-  border: "1px solid #ddd",
-};
-
 export default function Admin({ me, onChange }) {
   const [form, setForm] = useState(null);
   const [editingFacility, setEditingFacility] = useState(false);
@@ -193,7 +186,7 @@ export default function Admin({ me, onChange }) {
   };
 
   if (!form) {
-    return <div className="card"><p>{facilityMsg || "Loading…"}</p></div>;
+    return <div className="card"><p className="muted">{facilityMsg || "Loading…"}</p></div>;
   }
 
   return (
@@ -213,22 +206,24 @@ export default function Admin({ me, onChange }) {
               Edit
             </button>
             {facilityMsg && (
-              <p style={{ color: facilityMsg === "Saved." ? "green" : "#d33", marginTop: "10px" }}>{facilityMsg}</p>
+              <p className={facilityMsg === "Saved." ? "text-success" : "text-danger"} style={{ marginTop: "10px" }}>{facilityMsg}</p>
             )}
           </div>
         ) : (
           <form onSubmit={saveFacility}>
-            {FIELDS.map(([key, label]) => (
-              <div key={key} style={{ marginBottom: "16px" }}>
-                <label style={{ display: "block", marginBottom: "8px" }}>{label}</label>
-                <input
-                  type="text"
-                  value={form[key]}
-                  onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                  style={inputStyle}
-                />
-              </div>
-            ))}
+            <div className="form-grid">
+              {FIELDS.map(([key, label]) => (
+                <div className="field" key={key}>
+                  <label>{label}</label>
+                  <input
+                    className="input"
+                    type="text"
+                    value={form[key]}
+                    onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                  />
+                </div>
+              ))}
+            </div>
             <div className="row-actions">
               <button className="button" type="submit" disabled={savingFacility}>
                 {savingFacility ? "Saving…" : "Save changes"}
@@ -238,7 +233,7 @@ export default function Admin({ me, onChange }) {
               </button>
             </div>
             {facilityMsg && (
-              <p style={{ color: facilityMsg === "Saved." ? "green" : "#d33", marginTop: "10px" }}>{facilityMsg}</p>
+              <p className={facilityMsg === "Saved." ? "text-success" : "text-danger"} style={{ marginTop: "10px" }}>{facilityMsg}</p>
             )}
           </form>
         )}
@@ -246,14 +241,14 @@ export default function Admin({ me, onChange }) {
 
       <div className="card">
         <h2>Staff email domains</h2>
-        <p className="muted" style={{ fontSize: "13px" }}>
+        <p className="section-note">
           Anyone who signs in with a verified email at one of these domains automatically joins as
           a member. Personal providers (gmail.com, etc.) can't be used — and to add a domain, you
           must be signed in with a verified email at that exact domain, which proves your
           organization owns it.
         </p>
         {domains.length > 0 && (
-          <div style={{ overflowX: "auto", marginTop: "12px" }}>
+          <div style={{ overflowX: "auto", marginBottom: "12px" }}>
             <table className="data-table">
               <thead>
                 <tr>
@@ -278,7 +273,7 @@ export default function Admin({ me, onChange }) {
             </table>
           </div>
         )}
-        <form onSubmit={addDomain} className="row-actions" style={{ marginTop: "12px" }}>
+        <form onSubmit={addDomain} className="row-actions">
           <input
             className="input"
             style={{ maxWidth: "280px" }}
@@ -290,7 +285,7 @@ export default function Admin({ me, onChange }) {
             {domainBusy ? "Adding…" : "Add domain"}
           </button>
         </form>
-        {domainMsg && <p style={{ color: "#d9453d", marginTop: "8px" }}>{domainMsg}</p>}
+        {domainMsg && <p className="text-danger" style={{ marginTop: "8px" }}>{domainMsg}</p>}
       </div>
 
       {notif && (
@@ -300,12 +295,12 @@ export default function Admin({ me, onChange }) {
             <input type="checkbox" checked={notif.enabled} onChange={toggleNotif} />
             Send ride-status updates to residents' families
           </label>
-          <p className="muted" style={{ fontSize: "13px", marginTop: "10px" }}>
+          <p className="section-note" style={{ marginTop: "10px" }}>
             Channels: email {notif.emailChannel ? "✓ active" : "— not configured"} · SMS{" "}
             {notif.smsChannel ? "✓ active" : "— not configured"}
             {!notif.emailChannel && !notif.smsChannel && " (no delivery until the server is configured)"}
           </p>
-          <p className="muted" style={{ fontSize: "13px" }}>
+          <p className="section-note">
             Families are notified when a driver is assigned, the resident is picked up, the ride
             completes, or a ride is cancelled — using the family email/phone on each resident.
           </p>
@@ -313,9 +308,9 @@ export default function Admin({ me, onChange }) {
       )}
 
       {unlinked.length > 0 && (
-        <div className="card" style={{ borderLeft: "4px solid #e8a33d" }}>
+        <div className="card">
           <h2>People waiting to join</h2>
-          <p className="muted" style={{ fontSize: "13px" }}>
+          <p className="section-note">
             These accounts have signed in but aren't in any facility. Add the ones who belong to yours.
           </p>
           <table className="data-table">
@@ -337,9 +332,9 @@ export default function Admin({ me, onChange }) {
 
       <div className="card">
         <h2>Staff</h2>
-        {staffMsg && <p style={{ color: "#d33" }}>{staffMsg}</p>}
+        {staffMsg && <div className="alert alert-danger">{staffMsg}</div>}
         {staff.length === 0 ? (
-          <p>No staff yet. Set the email domain above so colleagues auto-join when they sign in, or add them from "People waiting to join".</p>
+          <p className="muted">No staff yet. Set the email domain above so colleagues auto-join when they sign in, or add them from "People waiting to join".</p>
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table className="data-table">
@@ -360,10 +355,11 @@ export default function Admin({ me, onChange }) {
                     </td>
                     <td>
                       <select
+                        className="input"
+                        style={{ width: "auto" }}
                         value={u.role}
                         disabled={busyUser === u.id}
                         onChange={(e) => changeRole(u.id, e.target.value)}
-                        style={{ padding: "6px", borderRadius: "6px", border: "1px solid #ddd" }}
                       >
                         {ROLES.map((r) => (
                           <option key={r} value={r}>{r}</option>
@@ -372,10 +368,11 @@ export default function Admin({ me, onChange }) {
                     </td>
                     <td>
                       <select
+                        className="input"
+                        style={{ width: "auto" }}
                         value={u.status}
                         disabled={busyUser === u.id}
                         onChange={(e) => changeStatus(u.id, e.target.value)}
-                        style={{ padding: "6px", borderRadius: "6px", border: "1px solid #ddd" }}
                       >
                         <option value="active">active</option>
                         <option value="inactive">inactive</option>

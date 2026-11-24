@@ -38,7 +38,7 @@ export default function DriverMap({ drivers, emptyMessage = "No drivers are shar
       <MapContainer
         center={center}
         zoom={live.length ? 11 : 4}
-        style={{ height: "360px", borderRadius: "8px" }}
+        style={{ height: "360px", borderRadius: "10px" }}
         key={live.map((d) => d.id).join(",")}
       >
         <TileLayer
@@ -50,7 +50,7 @@ export default function DriverMap({ drivers, emptyMessage = "No drivers are shar
             key={d.id}
             center={[Number(d.locationLat), Number(d.locationLng)]}
             radius={9}
-            pathOptions={{ color: "#667eea", fillColor: "#667eea", fillOpacity: 0.8 }}
+            pathOptions={{ color: "#0f766e", fillColor: "#0f766e", fillOpacity: 0.85 }}
           >
             <Popup>
               <strong>{d.firstName} {d.lastName}</strong>

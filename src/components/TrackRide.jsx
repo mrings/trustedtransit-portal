@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { api } from "../services/api";
+import { BrandMark } from "./Brand";
 import "../App.css";
 
 const fmt = (iso) => {
@@ -43,12 +44,14 @@ export default function TrackRide({ token }) {
   }, [load]);
 
   return (
-    <div className="app">
-      <header className="header">
-        <h1>Trusted Transit</h1>
-        <p>Ride tracking</p>
+    <div style={{ minHeight: "100vh", background: "var(--bg-page)" }}>
+      <header className="topbar" style={{ justifyContent: "center" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <BrandMark />
+          <h1>TrustedTransit</h1>
+        </span>
       </header>
-      <main className="content" style={{ maxWidth: "640px", margin: "0 auto", padding: "24px 16px", width: "100%" }}>
+      <main className="content" style={{ maxWidth: "560px" }}>
         {notFound && (
           <div className="card">
             <p>This tracking link isn't valid, or the ride it points to no longer exists.</p>
@@ -56,7 +59,7 @@ export default function TrackRide({ token }) {
         )}
         {!notFound && error && (
           <div className="card">
-            <p style={{ color: "#d9453d" }}>{error}</p>
+            <div className="alert alert-danger" style={{ marginBottom: 0 }}>{error}</div>
           </div>
         )}
         {!notFound && !error && !data && (
@@ -67,9 +70,9 @@ export default function TrackRide({ token }) {
         {data && (
           <>
             <div className="card">
-              <h2 style={{ marginBottom: "8px" }}>{data.residentFirstName}'s ride</h2>
-              <p style={{ fontWeight: 600, marginBottom: "10px" }}>
-                {STATUS_LABEL[data.status] || data.status}
+              <h2>{data.residentFirstName}'s ride</h2>
+              <p style={{ marginBottom: "10px" }}>
+                <span className="badge badge-info">{STATUS_LABEL[data.status] || data.status}</span>
               </p>
               <p className="muted">{fmt(data.scheduledPickupTime)}{data.appointmentType ? ` · ${data.appointmentType}` : ""}</p>
               <div style={{ margin: "14px 0" }}>
@@ -86,18 +89,18 @@ export default function TrackRide({ token }) {
             </div>
 
             <div className="card">
-              <h2 style={{ marginBottom: "8px" }}>Live location</h2>
+              <h2>Live location</h2>
               {data.locationLat != null && data.locationLng != null ? (
                 <MapContainer
                   center={[Number(data.locationLat), Number(data.locationLng)]}
                   zoom={13}
-                  style={{ height: "320px", borderRadius: "8px" }}
+                  style={{ height: "320px", borderRadius: "10px" }}
                 >
                   <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                   <CircleMarker
                     center={[Number(data.locationLat), Number(data.locationLng)]}
                     radius={9}
-                    pathOptions={{ color: "#667eea", fillColor: "#667eea", fillOpacity: 0.8 }}
+                    pathOptions={{ color: "#0f766e", fillColor: "#0f766e", fillOpacity: 0.85 }}
                   >
                     <Popup>{data.driverName || "Driver"}</Popup>
                   </CircleMarker>

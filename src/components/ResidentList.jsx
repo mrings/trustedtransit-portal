@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../services/api";
+import { IconPlus } from "./Icons";
 
 const EMPTY = {
   firstName: "",
@@ -32,7 +33,7 @@ function ResidentForm({ initial, onSubmit, onCancel, submitLabel }) {
         e.preventDefault();
         onSubmit(data);
       }}
-      style={{ padding: "16px", background: "#f9f9f9", borderRadius: "8px", marginBottom: "16px" }}
+      className="panel"
     >
       <div className="form-grid">
         <Field label="First name">
@@ -154,11 +155,11 @@ export default function ResidentList() {
   return (
     <div className="card">
       <h2>Residents</h2>
-      {error && <p style={{ color: "#d9453d", marginBottom: "12px" }}>{error}</p>}
+      {error && <div className="alert alert-danger">{error}</div>}
 
       {!adding && !editingId && (
         <button className="button" style={{ marginBottom: "16px" }} onClick={() => setAdding(true)}>
-          Add Resident
+          <IconPlus /> Add Resident
         </button>
       )}
 
@@ -177,7 +178,7 @@ export default function ResidentList() {
       )}
 
       {loading ? (
-        <p>Loading residents…</p>
+        <p className="muted">Loading residents…</p>
       ) : residents.length === 0 ? (
         <p className="muted">No residents yet.</p>
       ) : (
@@ -199,7 +200,11 @@ export default function ResidentList() {
                   <td>{r.firstName} {r.lastName}</td>
                   <td>{r.phone}</td>
                   <td>{r.mobilityRequirements || <span className="muted">None</span>}</td>
-                  <td style={{ color: r.status === "active" ? "green" : "#d9453d" }}>{r.status}</td>
+                  <td>
+                    <span className={`badge ${r.status === "active" ? "badge-success" : "badge-danger"}`}>
+                      {r.status}
+                    </span>
+                  </td>
                   <td>
                     <button className="mono" style={{ border: "none", background: "none", cursor: "pointer", padding: 0 }} onClick={() => copyId(r.id)} title="Copy ID">
                       {copiedId === r.id ? "copied ✓" : r.id.slice(0, 8) + "…"}

@@ -106,41 +106,35 @@ export default function DriverView() {
   return (
     <div className="card">
       <h2>My Driver Dashboard</h2>
-      {error && <p style={{ color: "#d9453d" }}>{error}</p>}
+      {error && <div className="alert alert-danger">{error}</div>}
 
       {profile && profile.backgroundCheckStatus !== "approved" && (
-        <div
-          className="card"
-          style={{
-            borderLeft: `4px solid ${profile.backgroundCheckStatus === "rejected" ? "#d9453d" : "#e8a33d"}`,
-            marginBottom: "20px",
-          }}
-        >
+        <div className={`alert ${profile.backgroundCheckStatus === "rejected" ? "alert-danger" : "alert-warning"}`}>
           {profile.backgroundCheckStatus === "rejected"
             ? "Your background check wasn't approved, so you can't be assigned rides. Contact TrustedTransit support if you think this is a mistake."
             : "Your background check is pending review — you can set up your profile now, but facilities can't assign you rides until TrustedTransit approves it."}
         </div>
       )}
 
-      <div style={{ padding: "16px", background: "#f9f9f9", borderRadius: "8px", marginBottom: "20px" }}>
+      <div className="panel">
         <label style={{ display: "flex", alignItems: "center", gap: "10px", fontWeight: 600 }}>
           <input type="checkbox" checked={sharing} onChange={(e) => setSharing(e.target.checked)} />
           Share my location while driving
         </label>
         {sharing && (
-          <p className="muted" style={{ fontSize: "13px", marginTop: "6px" }}>
+          <p className="section-note" style={{ marginTop: "6px", marginBottom: 0 }}>
             {lastPing ? `Last sent ${lastPing.toLocaleTimeString()}` : "Waiting for GPS…"}
           </p>
         )}
       </div>
 
-      <h3 style={{ marginBottom: "8px" }}>Profile</h3>
+      <h3>Profile</h3>
       {!editing ? (
         <div style={{ marginBottom: "20px" }}>
           <p>{profile?.firstName} {profile?.lastName}</p>
           <p className="muted">{profile?.transportCompanyName || "Independent driver"}</p>
           <p className="muted">{profile?.phone || "no phone"} · {profile?.vehicleType || "no vehicle"} {profile?.vehiclePlate}</p>
-          <button className="button secondary sm" onClick={() => setEditing(true)}>Edit profile</button>
+          <button className="button secondary sm" style={{ marginTop: "10px" }} onClick={() => setEditing(true)}>Edit profile</button>
         </div>
       ) : (
         <form onSubmit={saveProfile} style={{ marginBottom: "20px" }} className="form-grid">
@@ -163,13 +157,13 @@ export default function DriverView() {
         </form>
       )}
 
-      <h3 style={{ marginBottom: "8px" }}>My Rides</h3>
+      <h3>My Rides</h3>
       {rides.length === 0 ? (
         <p className="muted">No rides assigned to you.</p>
       ) : (
         <div style={{ display: "grid", gap: "12px" }}>
           {rides.map((r) => (
-            <div key={r.id} style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "14px" }}>
+            <div key={r.id} className="panel" style={{ marginBottom: 0 }}>
               <div style={{ fontWeight: 700 }}>{r.residentName}</div>
               <div className="muted">{r.pickupAddress} → {r.destinationAddress}</div>
               <div className="mono">{fmt(r.scheduledPickupTime)} · {r.appointmentType}</div>
